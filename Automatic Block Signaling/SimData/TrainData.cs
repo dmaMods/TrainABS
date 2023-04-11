@@ -92,6 +92,7 @@ namespace dmaTrainABS
         #region PROCESS TRAINS
         public static void ProcessTrains()
         {
+            SimData.Updating = true;
             // CLEAR BLOCKS
             SimData.Blocks.All(c => { c.BlockedBy = 0; return true; });
 
@@ -110,6 +111,7 @@ namespace dmaTrainABS
                 train.NSegment = PathFinder.GetNextPosition(vehicles[train.TrainID.FrontCar()], out PathUnit.Position trainNPos);
                 train.NBlock = GetNextBlock(train, train.CSegment, trainNPos);
             }
+            SimData.Updating = false;
         }
 
         private static ushort GetNextBlock(STrains train, List<ushort> cSegment, PathUnit.Position trainPos)

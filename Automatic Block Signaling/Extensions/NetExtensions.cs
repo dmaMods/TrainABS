@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using ColossalFramework.Math;
 using dmaTrainABS.Traffic;
 using System.Collections.Generic;
 using System.Linq;
@@ -128,6 +129,10 @@ namespace dmaTrainABS
         public static NetInfo.Node[] GetNodes(this ushort segmentId) => segments[segmentId].Info.m_nodes;
 
         public static uint RevertLane(this uint lane) => lane == 0 ? 1u : 0;
+
+        public static Vector3 Flat(this Vector3 v) => new Vector3(v.x, 0f, v.z);
+
+        public static Bezier3 Flat(this Bezier3 bezier) => new Bezier3() { a = bezier.a.Flat(), b = bezier.b.Flat(), c = bezier.c.Flat(), d = bezier.d.Flat() };
 
     }
 

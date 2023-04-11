@@ -398,22 +398,20 @@ namespace dmaTrainABS
                 {
                     var netLane = NetManager.instance.m_lanes.m_buffer[laneId];
                     bezier = netLane.m_bezier;
-                    //colour = segment.Lane == 0 ? Color.green : segment.Lane == 1 ? Color.red : Color.white;
-                    //if (netSegment.m_flags.IsFlagSet(NetSegment.Flags.Invert)) colour = segment.Lane == 0 ? Color.cyan : Color.magenta;
                     colour = freeBlocks[segment.BlockId] ? Color.red : Color.green;
                 }
                 else
                 {
                     NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, true, true, out Vector3 midPos1, out Vector3 midPos2);
-                    bezier = new Bezier3 { a = startPos, b = midPos1, c = midPos2, d = endPos };
+                    bezier = new Bezier3 { a = startPos, b = midPos1, c = midPos2, d = endPos};
                     colour = Color.white;
                 }
-                Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier, preFab.m_halfWidth / 2, 0, 0, -1f, 1280f, false, true);
+                Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier.Flat(), preFab.m_halfWidth / 2.5f, 0, 0, -1f, 1280f, false, true);
 
                 NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, true, true, out Vector3 midPos1a, out Vector3 midPos2a);
                 bezier = new Bezier3 { a = startPos, b = midPos1a, c = midPos2a, d = endPos };
                 colour = Color.gray;
-                Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier, preFab.m_halfWidth * 2f, 0, 0, -1f, 1280f, false, true);
+                Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier.Flat(), preFab.m_halfWidth * 2.1f, 0, 0, -1f, 1280f, false, true);
 
             }
         }
@@ -517,10 +515,10 @@ namespace dmaTrainABS
             base.OnDisable();
         }
 
-        public static bool IsActiveTool => KeyboardInput.buildTool != null && KeyboardInput._nodeSel;
+        public static bool IsActiveTool => KeyboardInput.buildTool != null && (KeyboardInput._nodeSel || KeyboardInput._showBlocks);
         internal static void DisableTool()
         {
-            KeyboardInput._nodeSel = false;
+            KeyboardInput._nodeSel = false; KeyboardInput._showBlocks = false;
             if (KeyboardInput.buildTool != null) { Destroy(KeyboardInput.buildTool); KeyboardInput.buildTool = null; ToolsModifierControl.SetTool<DefaultTool>(); }
         }
 
