@@ -57,7 +57,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Debug\DebugPanel.cs" />
     <Compile Include="Extensions\NetExtensions.cs" />
     <Compile Include="Extensions\OptionsKeymapping.cs" />
     <Compile Include="Extensions\PathFinder.cs" />
@@ -91,7 +90,7 @@ xcopy /y "$(TargetDir)CitiesHarmony.API.dll" "%25LOCALAPPDATA%25\Colossal Order\
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_StartDate="2023/2/14" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.DeltaBaseDate.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.DeltaBaseDate.Increment" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_StartDate="2023/2/14" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

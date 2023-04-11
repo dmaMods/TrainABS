@@ -1,4 +1,6 @@
 ﻿using ColossalFramework;
+using ColossalFramework.Math;
+using ColossalFramework.Plugins;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -85,26 +87,30 @@ namespace dmaTrainABS
                         {
                             simulationManager.AddAction(this.ShowInfo());
                             var segments = BlockData.blockSegments.Where(x => x.SegmentId == selectedSegmentId);
-                            string block = "";
+                            string block = ""; string laneInfo = "";
                             foreach (var seg in segments)
                                 block += "Block: " + seg.BlockId + ", Lane: " + seg.Lane + LaneColor(seg.Lane) + Environment.NewLine;
                             NetNode netNode = netManager.m_nodes.m_buffer[selectedNodeId];
                             NetSegment netSegment = netManager.m_segments.m_buffer[selectedSegmentId];
-                            DOP.Show("Node ID: " + selectedNodeId + (selectedNodeId != 0 ? ", Flags: " + netNode.m_flags : "") + Environment.NewLine +
+                            var netLane = NetManager.instance.m_lanes.m_buffer[netSegment.m_lanes];
+
+                            laneInfo += "m_lanes: " + netSegment.m_lanes + ", Flags: " + netLane.m_flags + ", Next Lane: " + netLane.m_nextLane;
+
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Node ID: " + selectedNodeId + (selectedNodeId != 0 ? ", Flags: " + netNode.m_flags : "") + Environment.NewLine +
                                 "Segment: " + selectedSegmentId +
                                 ", Start Node: " + netSegment.m_startNode + ", End Node: " + netSegment.m_endNode + ", Flags: " + netSegment.m_flags +
                                 ", Direction: " + netSegment.m_startDirection + "-" + netSegment.m_endDirection +
-                                Environment.NewLine + block);
+                                Environment.NewLine + block + Environment.NewLine + laneInfo);
                         }
                     }
                 }
             }
         }
 
-        internal static string LaneColor(byte lane)
+        internal static string LaneColor(uint lane)
         {
-            if (lane == 0) return " (R)";
-            else return " (Y)";
+            if (lane == 0) return " (G)";
+            else return " (R)";
         }
 
         private IEnumerator ShowInfo()
@@ -253,39 +259,28 @@ namespace dmaTrainABS
         {
             base.RenderOverlay(cameraInfo);
 
-            if (!this.m_toolController.IsInsideUI && Cursor.visible && (selectedNodeId != 0 || selectedSegmentId != 0))
+            if (KeyboardInput._nodeSel)
             {
-                NetTool.ControlPoint controlPoint = this.cachedControlPoint;
-
-                BuildingInfo buildingInfo;
-                Vector3 vector;
-                Vector3 vector2;
-                int num3;
-
-                if (preFab != null)
+                if (!this.m_toolController.IsInsideUI && Cursor.visible && (selectedNodeId != 0 || selectedSegmentId != 0))
                 {
-                    preFab.m_netAI.CheckBuildPosition(false, false, true, true, ref controlPoint, ref controlPoint, ref controlPoint, out buildingInfo, out vector, out vector2, out num3);
+                    NetTool.ControlPoint controlPoint = this.cachedControlPoint;
 
-                    Color colour = Color.cyan; bool baseCircle = selectedNodeId == 0;
-                    var node = NetManager.instance.m_nodes.m_buffer[selectedNodeId];
-                    NetNode.Flags flags = node.m_flags; Action = NodeAction.Default;
+                    BuildingInfo buildingInfo;
+                    Vector3 vector;
+                    Vector3 vector2;
+                    int num3;
 
-                    if (selectedNodeId != 0)
+                    if (preFab != null)
                     {
-                        if (SimData.Nodes.Any(x => x.NodeID == selectedNodeId))
+                        preFab.m_netAI.CheckBuildPosition(false, false, true, true, ref controlPoint, ref controlPoint, ref controlPoint, out buildingInfo, out vector, out vector2, out num3);
+
+                        Color colour = Color.cyan; bool baseCircle = selectedNodeId == 0;
+                        var node = NetManager.instance.m_nodes.m_buffer[selectedNodeId];
+                        NetNode.Flags flags = node.m_flags; Action = NodeAction.Default;
+
+                        if (selectedNodeId != 0)
                         {
-                            if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
-                            {
-                                colour = Color.magenta; Action = NodeAction.Info;
-                            }
-                            else
-                            {
-                                colour = Color.red; Action = NodeAction.RemoveNode;
-                            }
-                        }
-                        else
-                        {
-                            if (flags.IsFlagSet(NetNode.Flags.Junction) && !flags.IsFlagSet(NetNode.Flags.LevelCrossing)/* && !flags.IsFlagSet(NetNode.Flags.Untouchable)*/)
+                            if (SimData.Nodes.Any(x => x.NodeID == selectedNodeId))
                             {
                                 if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
                                 {
@@ -293,45 +288,133 @@ namespace dmaTrainABS
                                 }
                                 else
                                 {
-                                    colour = Color.green; Action = NodeAction.AddNode;
+                                    colour = Color.red; Action = NodeAction.RemoveNode;
                                 }
                             }
                             else
                             {
-                                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                                if (flags.IsFlagSet(NetNode.Flags.Junction) && !flags.IsFlagSet(NetNode.Flags.LevelCrossing)/* && !flags.IsFlagSet(NetNode.Flags.Untouchable)*/)
                                 {
-                                    colour = Color.yellow; Action = NodeAction.InsertNode;
+                                    if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
+                                    {
+                                        colour = Color.magenta; Action = NodeAction.Info;
+                                    }
+                                    else
+                                    {
+                                        colour = Color.green; Action = NodeAction.AddNode;
+                                    }
                                 }
-                                else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
+                                else
                                 {
-                                    colour = Color.magenta; Action = NodeAction.Info;
-                                }
-                                else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) )
-                                {
-                                    colour = Color.gray; Action = NodeAction.RemoveNode;
+                                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                                    {
+                                        colour = Color.yellow; Action = NodeAction.InsertNode;
+                                    }
+                                    else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
+                                    {
+                                        colour = Color.magenta; Action = NodeAction.Info;
+                                    }
+                                    else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                                    {
+                                        colour = Color.gray; Action = NodeAction.RemoveNode;
+                                    }
                                 }
                             }
                         }
-                    }
-                    else // NODE = 0
-                    {
-                        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                        else // NODE = 0
                         {
-                            colour = Color.yellow; Action = NodeAction.InsertNode; baseCircle = false;
+                            if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                            {
+                                colour = Color.yellow; Action = NodeAction.InsertNode; baseCircle = false;
+                            }
+                            else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
+                            {
+                                colour = Color.magenta; Action = NodeAction.Info; baseCircle = false;
+                            }
                         }
-                        else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
-                        {
-                            colour = Color.magenta; Action = NodeAction.Info; baseCircle = false;
-                        }
-                    }
 
-                    ToolManager toolManager = Singleton<ToolManager>.instance;
-                    toolManager.m_drawCallData.m_overlayCalls++;
-                    if (baseCircle)
-                        Singleton<RenderManager>.instance.OverlayEffect.DrawCircle(cameraInfo, Color.white, this.controlPoint.m_position, preFab.m_halfWidth * 1.25f, -1f, 1280f, false, false);
-                    else
-                        Singleton<RenderManager>.instance.OverlayEffect.DrawCircle(cameraInfo, colour, this.controlPoint.m_position, preFab.m_halfWidth * 2f, -1f, 1280f, false, false);
+                        ToolManager toolManager = Singleton<ToolManager>.instance;
+                        toolManager.m_drawCallData.m_overlayCalls++;
+                        if (baseCircle)
+                            Singleton<RenderManager>.instance.OverlayEffect.DrawCircle(cameraInfo, Color.white, this.controlPoint.m_position, preFab.m_halfWidth * 1.25f, -1f, 1280f, false, false);
+                        else
+                            Singleton<RenderManager>.instance.OverlayEffect.DrawCircle(cameraInfo, colour, this.controlPoint.m_position, preFab.m_halfWidth * 2f, -1f, 1280f, false, false);
+                    }
                 }
+            }
+
+            if (KeyboardInput._showBlocks)
+            {
+                if (!this.m_toolController.IsInsideUI && Cursor.visible && (selectedNodeId != 0 || selectedSegmentId != 0))
+                {
+                    NetTool.ControlPoint controlPoint = this.cachedControlPoint;
+                    BuildingInfo buildingInfo; Vector3 vector; Vector3 vector2; int num3;
+
+                    if (preFab != null)
+                    {
+                        preFab.m_netAI.CheckBuildPosition(false, false, true, true, ref controlPoint, ref controlPoint, ref controlPoint, out buildingInfo, out vector, out vector2, out num3);
+
+                        Color colour = Color.cyan; bool baseCircle = selectedNodeId == 0;
+                        var node = NetManager.instance.m_nodes.m_buffer[selectedNodeId];
+                        NetNode.Flags flags = node.m_flags; Action = NodeAction.Default;
+
+                        ToolManager toolManager = Singleton<ToolManager>.instance;
+                        toolManager.m_drawCallData.m_overlayCalls++;
+
+                        DrawBlock(selectedSegmentId, cameraInfo);
+                    }
+                }
+            }
+        }
+
+        private void DrawBlock(ushort segmentId, RenderManager.CameraInfo cameraInfo)
+        {
+            if (segmentId == 0) return;
+
+            var blocks = BlockData.blockSegments.Where(x => x.SegmentId == segmentId).Select(x => x.BlockId).ToList();
+            if (blocks.Count == 0) return;
+            BlockData.Info2 = blocks;
+            var freeBlocks = new Dictionary<ushort, bool>();
+            var fBlocks = SimData.Blocks.Where(x => blocks.Contains(x.BlockId)).ToList();
+            BlockData.Info = fBlocks;
+            foreach (var block in fBlocks)
+                freeBlocks.Add(block.BlockId, block.Blocked);
+
+            var segments = BlockData.blockSegments.Where(x => blocks.Contains(x.BlockId)); Color colour = Color.cyan;
+
+            foreach (var segment in segments)
+            {
+                var netSegment = segment.SegmentId.ToSegment();
+                netSegment.GetClosestPositionAndDirection(controlPoint.m_position, out Vector3 pos, out Vector3 dir);
+                var node1 = netSegment.m_startNode.ToNode(); var node2 = netSegment.m_endNode.ToNode();
+
+                var startPos = netSegment.m_startNode.ToNode().m_position;
+                var startDir = netSegment.m_startDirection;
+                var endPos = netSegment.m_endNode.ToNode().m_position;
+                var endDir = netSegment.m_endDirection;
+                var bezier = new Bezier3();
+
+                if (netSegment.GetClosestLane((int)segment.Lane, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Train, VehicleInfo.VehicleCategory.Trains, out int laneIndex, out uint laneId))
+                {
+                    var netLane = NetManager.instance.m_lanes.m_buffer[laneId];
+                    bezier = netLane.m_bezier;
+                    //colour = segment.Lane == 0 ? Color.green : segment.Lane == 1 ? Color.red : Color.white;
+                    //if (netSegment.m_flags.IsFlagSet(NetSegment.Flags.Invert)) colour = segment.Lane == 0 ? Color.cyan : Color.magenta;
+                    colour = freeBlocks[segment.BlockId] ? Color.red : Color.green;
+                }
+                else
+                {
+                    NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, true, true, out Vector3 midPos1, out Vector3 midPos2);
+                    bezier = new Bezier3 { a = startPos, b = midPos1, c = midPos2, d = endPos };
+                    colour = Color.white;
+                }
+                Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier, preFab.m_halfWidth / 2, 0, 0, -1f, 1280f, false, true);
+
+                NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, true, true, out Vector3 midPos1a, out Vector3 midPos2a);
+                bezier = new Bezier3 { a = startPos, b = midPos1a, c = midPos2a, d = endPos };
+                colour = Color.gray;
+                Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier, preFab.m_halfWidth * 2f, 0, 0, -1f, 1280f, false, true);
+
             }
         }
 
@@ -373,7 +456,6 @@ namespace dmaTrainABS
             if (newNode == 0)
             {
                 NetTool.CreateNode(controlPoint.m_segment.GetSegment().Info, controlPoint, controlPoint, controlPoint, NetTool.m_nodePositionsSimulation, 0, false, false, true, false, false, false, 0, out newNode, out newSegment, out cost, out productionRate);
-                if (newSegment != 0) StretchSNode(newSegment);
             }
             dbgNode = newNode; dbgSegment = newSegment;
 
@@ -415,17 +497,6 @@ namespace dmaTrainABS
             yield return null;
         }
 
-        private void StretchSNode(ushort segmentId)
-        {
-            var moveStart = new Vector3(-5f, 1, 0);
-            var moveEnd = new Vector3(5f, 1, 0);
-
-            if (netManager.m_segments.m_buffer[segmentId].m_flags == NetSegment.Flags.None) return;
-
-            netManager.MoveNode(netManager.m_segments.m_buffer[segmentId].m_startNode, netManager.m_nodes.m_buffer[netManager.m_segments.m_buffer[segmentId].m_startNode].m_position + moveStart);
-            netManager.MoveNode(netManager.m_segments.m_buffer[segmentId].m_endNode, netManager.m_nodes.m_buffer[netManager.m_segments.m_buffer[segmentId].m_endNode].m_position + moveEnd);
-        }
-
         protected override void OnEnable()
         {
             m_toolController.ClearColliding();
@@ -450,7 +521,6 @@ namespace dmaTrainABS
         internal static void DisableTool()
         {
             KeyboardInput._nodeSel = false;
-            DOP.Show("Node Tool Deactivated");
             if (KeyboardInput.buildTool != null) { Destroy(KeyboardInput.buildTool); KeyboardInput.buildTool = null; ToolsModifierControl.SetTool<DefaultTool>(); }
         }
 

@@ -35,6 +35,7 @@ namespace dmaTrainABS
             this.AddKeymapping("Update network", TrainABSModData.NetReload);
             this.AddKeymapping("Green lights to all", TrainABSModData.AllGreenLights);
             this.AddKeymapping("Red lights to all", TrainABSModData.AllRedLights);
+            this.AddKeymapping("Show Blocks", TrainABSModData.ShowBlocks);
         }
 
         private KeyCode ButtonToKeycode(UIMouseButton button) =>

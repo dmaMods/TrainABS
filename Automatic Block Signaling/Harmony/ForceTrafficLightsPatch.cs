@@ -64,24 +64,7 @@ namespace dmaTrainABS.Patching
 
         private static void ForceTrafficLights(PathUnit.Position position)
         {
-            DOP.rqPosition = position; return;
-            //NetManager instance = Singleton<NetManager>.instance;
-            //ushort index = (position.m_offset >= 0x80) ? instance.m_segments.m_buffer[position.m_segment].m_endNode : instance.m_segments.m_buffer[position.m_segment].m_startNode;
-            //if ((instance.m_nodes.m_buffer[index].m_flags & NetNode.Flags.TrafficLights) != NetNode.Flags.None)
-            //{
-            //    RoadBaseAI.TrafficLightState state;
-            //    RoadBaseAI.TrafficLightState state2;
-            //    bool flag;
-            //    bool flag2;
-            //    uint currentFrameIndex = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            //    uint num3 = (uint)((index << 8) / 0x8000);
-            //    uint num4 = (currentFrameIndex - num3) & 0xff;
-            //    RoadBaseAI.GetTrafficLightState(index, ref instance.m_segments.m_buffer[position.m_segment], currentFrameIndex - num3, out state, out state2, out flag, out flag2);
-            //    if (!flag && (num4 >= 0xc4))
-            //    {
-            //        RoadBaseAI.SetTrafficLightState(index, ref instance.m_segments.m_buffer[position.m_segment], currentFrameIndex - num3, state, state2, true, flag2);
-            //    }
-            //}
+            return;
         }
 
     }

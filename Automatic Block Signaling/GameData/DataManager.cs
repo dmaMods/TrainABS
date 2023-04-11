@@ -16,7 +16,7 @@ namespace dmaTrainABS
         private static WriteData SaveGameData;
 
         private static ISerializableData SerializableData => SimulationManager.instance.m_SerializableDataWrapper;
-        public const uint DataVersion = 1;
+        public const uint DataVersion = 2;
 
         public override void OnCreated(ISerializableData serializableData) { base.OnCreated(serializableData); }
 

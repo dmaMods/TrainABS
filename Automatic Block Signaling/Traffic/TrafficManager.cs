@@ -2,6 +2,7 @@
 using dmaTrainABS.GameData;
 using System;
 using System.Linq;
+using UnityEngine;
 
 namespace dmaTrainABS
 {
@@ -9,8 +10,9 @@ namespace dmaTrainABS
     {
         private static Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
-        public static void UpdateTraffic(uint frameIndex, bool debugEnabled = false)
+        public static void UpdateTraffic(uint frameIndex)
         {
+            if (SimData.Updating) return;
             try
             {
                 if (SimData.UpdateRequired) BlockData.LoadNetwork();
@@ -29,7 +31,6 @@ namespace dmaTrainABS
                             ProcessId = ++Cnt,
                             TrainId = train.TrainID
                         });
-                        //DOP.Show("Process #" + Cnt + " - Created.");
                     }
                     else
                     {
@@ -79,7 +80,7 @@ namespace dmaTrainABS
                 }
                 SimData.WaitingList.RemoveAll(x => x.Processed);
             }
-            catch (Exception ex) { DOP.Show(ex.Message + Environment.NewLine + ex.StackTrace, DOP.MessageType.Error); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         private static void ClearProcessId(int processId)

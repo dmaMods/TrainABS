@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static dmaTrainABS.GameData.Declarations;
 
 namespace dmaTrainABS
@@ -59,7 +60,7 @@ namespace dmaTrainABS
                     }
                 }
             }
-            catch (Exception ex) { DOP.Show(ex.Message + Environment.NewLine + ex.StackTrace, DOP.MessageType.Error); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
         internal static void SetRedState(ushort SegmentId)

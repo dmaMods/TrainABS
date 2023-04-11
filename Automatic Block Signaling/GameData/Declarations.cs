@@ -105,13 +105,10 @@ namespace dmaTrainABS.GameData
             public ushort StartNode { get; set; }
             public ushort EndNode { get; set; }
             public bool EndSegment { get; set; }
-            //public eDirection Direction { get; set; }
-            //public string Ident { get; set; }
-            public byte Lane { get; set; }
+            public uint Lane { get; set; }
             public bool Inverted { get; set; }
             public ushort BlockId { get; set; }
-            //public bool Processed { get; set; }
-            //public NetSegment.Flags Flags { get; internal set; }
+            public bool Processed { get; set; }
         }
 
         public enum eDirection : int

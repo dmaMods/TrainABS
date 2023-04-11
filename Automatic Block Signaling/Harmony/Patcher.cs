@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using System;
 
 namespace dmaTrainABS.Patching
 {
@@ -14,17 +13,19 @@ namespace dmaTrainABS.Patching
 
             patched = true;
             var harmony = new Harmony(HarmonyId);
-
-            var originalMethods = Harmony.GetAllPatchedMethods();
-            foreach (var method in originalMethods)
+            try
             {
-                if (method.DeclaringType == typeof(TrainAI))
+                var originalMethods = Harmony.GetAllPatchedMethods();
+                foreach (var method in originalMethods)
                 {
-                    harmony.Unpatch(method, HarmonyPatchType.All, "me.tmpe");
+                    if (method.DeclaringType == typeof(TrainAI))
+                    {
+                        harmony.Unpatch(method, HarmonyPatchType.All, "me.tmpe");
+                    }
                 }
             }
-
-            harmony.PatchAll(typeof(Patcher).Assembly); // you can also do manual patching here!
+            catch { }
+            harmony.PatchAll(typeof(Patcher).Assembly);
         }
 
         public static void UnpatchAll()

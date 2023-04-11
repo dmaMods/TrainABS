@@ -1,6 +1,8 @@
 ﻿using ColossalFramework;
+using dmaTrainABS.Traffic;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static dmaTrainABS.GameData.Declarations;
 
 namespace dmaTrainABS
@@ -33,7 +35,8 @@ namespace dmaTrainABS
             if (flags.IsFlagSet(NetNode.Flags.Junction))
             {
                 if (flags.IsFlagSet(NetNode.Flags.LevelCrossing)) return false;
-
+                if (flags.IsFlagSet(NetNode.Flags.TrafficLights)) return true;
+                if (node.CountSegments() <= 2) return false;
                 return true;
             }
             return false;
@@ -88,6 +91,12 @@ namespace dmaTrainABS
             return list;
         }
 
+        public static List<BlockDataVars.Block> AddNew(this List<BlockDataVars.Block> list, BlockDataVars.Block item)
+        {
+            if (!list.Any(x => x.BlockId == item.BlockId)) list.Add(item);
+            return list;
+        }
+
         public static bool IsValid(this List<SRailBlocks> sBlocks)
         {
             if (sBlocks == null) return false;
@@ -117,6 +126,8 @@ namespace dmaTrainABS
         public static Vehicle ToVehicle(this ushort vehicleId) => vehicles[vehicleId];
 
         public static NetInfo.Node[] GetNodes(this ushort segmentId) => segments[segmentId].Info.m_nodes;
+
+        public static uint RevertLane(this uint lane) => lane == 0 ? 1u : 0;
 
     }
 

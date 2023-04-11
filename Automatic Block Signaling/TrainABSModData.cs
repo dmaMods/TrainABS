@@ -3,7 +3,6 @@ using ColossalFramework;
 using ColossalFramework.UI;
 using dmaTrainABS.Patching;
 using ICities;
-using System;
 using System.Reflection;
 using UnityEngine;
 
@@ -20,6 +19,7 @@ namespace dmaTrainABS
         public static readonly SavedInputKey NetReload = new SavedInputKey("netReload", "dmaTrainABS_Config", SavedInputKey.Encode(KeyCode.U, true, true, false), true);
         public static readonly SavedInputKey AllGreenLights = new SavedInputKey("allGreenLights", "dmaTrainABS_Config", SavedInputKey.Encode(KeyCode.G, true, true, false), true);
         public static readonly SavedInputKey AllRedLights = new SavedInputKey("allRedLights", "dmaTrainABS_Config", SavedInputKey.Encode(KeyCode.R, true, true, false), true);
+        public static readonly SavedInputKey ShowBlocks = new SavedInputKey("showBlocks", "dmaTrainABS_Config", SavedInputKey.Encode(KeyCode.B, true, true, false), true);
 
         public string Name { get { return DMAMODS_NAME; } }
 
@@ -43,6 +43,7 @@ namespace dmaTrainABS
                     sFiles.fileName = "dmaTrainABS_Config";
                     SettingsFile[] settingsFiles = new SettingsFile[] { sFiles };
                     GameSettings.AddSettingsFile(settingsFiles);
+                    GameSettings.SaveAll();
                 }
             }
             catch { _settingsFailed = true; }

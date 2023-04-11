@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 using static dmaTrainABS.GameData.Declarations;
 
 namespace dmaTrainABS
@@ -15,12 +16,14 @@ namespace dmaTrainABS
         public static bool UpdateRequired { get; set; } = false;
         public static List<ushort> GreenLights { get; set; } = new List<ushort>();
         public static List<SWaitingList> WaitingList { get; set; } = new List<SWaitingList>();
+        public static bool Updating { get; set; } = false;
 
-        public static void InitData()
+        public static void InitData(bool InitAll = true)
         {
-            Trains = new List<STrains>();
-            Nodes = new List<SNodeData>();
+            if (InitAll)
+                Nodes = new List<SNodeData>();
             Blocks = new List<SRailBlocks>();
+            Trains = new List<STrains>();
             UpdateRequired = false;
             WaitingList = new List<SWaitingList>();
             GreenLights = new List<ushort>();
@@ -33,7 +36,7 @@ namespace dmaTrainABS
             block.BlockedBy = trainId;
         }
 
-        public static void AddNode(ushort nodeID, List<ushort> segments, bool debugMode = false)
+        public static void AddNode(ushort nodeID, List<ushort> segments)
         {
             try
             {
@@ -49,10 +52,10 @@ namespace dmaTrainABS
                 }
                 CheckNodes();
             }
-            catch (Exception ex) { if (debugMode) DOP.Show(ex.Message + Environment.NewLine + ex.StackTrace, DOP.MessageType.Error); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
-        public static void RemoveNode(ushort nodeID, bool debugMode = false)
+        public static void RemoveNode(ushort nodeID)
         {
             try
             {
@@ -63,10 +66,10 @@ namespace dmaTrainABS
 
                 CheckNodes();
             }
-            catch (Exception ex) { if (debugMode) DOP.Show(ex.Message + Environment.NewLine + ex.StackTrace, DOP.MessageType.Error); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
-        public static void CheckNodes(bool debugMode = false)
+        public static void CheckNodes()
         {
             try
             {
@@ -76,11 +79,15 @@ namespace dmaTrainABS
                     NetNode.Flags flags = netNode.m_flags;
                     if (flags.CheckFlags(NetNode.Flags.Created | NetNode.Flags.Junction | NetNode.Flags.TrafficLights, NetNode.Flags.LevelCrossing | NetNode.Flags.Untouchable))
                     { /* valid node... do nothing */ }
-                    else { node.NodeID = 0; }
+                    else
+                    {
+                        WaitingList.RemoveAll(x => x.NodeId == node.NodeID);
+                        node.NodeID = 0;
+                    }
                 }
                 Nodes.RemoveAll(x => x.NodeID == 0);
             }
-            catch (Exception ex) { if (debugMode) DOP.Show(ex.Message + Environment.NewLine + ex.StackTrace, DOP.MessageType.Error); }
+            catch (Exception ex) { Debug.LogException(ex); }
         }
 
     }
