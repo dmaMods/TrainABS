@@ -12,7 +12,7 @@ namespace dmaTrainABS
 
         public static List<STrains> Trains { get; set; } = new List<STrains>();
         public static List<SNodeData> Nodes { get => nodes; set { nodes = value; UpdateRequired = true; } }
-        public static List<SRailBlocks> Blocks { get; set; } = new List<SRailBlocks>();
+        public static Dictionary<ushort, SRailBlocks> Blocks { get; set; } = new Dictionary<ushort, SRailBlocks>();
         public static bool UpdateRequired { get; set; } = false;
         public static List<ushort> GreenLights { get; set; } = new List<ushort>();
         public static List<SWaitingList> WaitingList { get; set; } = new List<SWaitingList>();
@@ -22,7 +22,7 @@ namespace dmaTrainABS
         {
             if (InitAll)
                 Nodes = new List<SNodeData>();
-            Blocks = new List<SRailBlocks>();
+            Blocks = new Dictionary<ushort, SRailBlocks>();
             Trains = new List<STrains>();
             UpdateRequired = false;
             WaitingList = new List<SWaitingList>();
@@ -31,9 +31,8 @@ namespace dmaTrainABS
 
         public static void UpdateBlock(ushort blockId, ushort trainId)
         {
-            var block = Blocks.FirstOrDefault(x => x.BlockId == blockId);
-            if (block == null) return;
-            block.BlockedBy = trainId;
+            if (Blocks.ContainsKey(blockId))
+                Blocks[blockId].BlockedBy = trainId;
         }
 
         public static void AddNode(ushort nodeID, List<ushort> segments)

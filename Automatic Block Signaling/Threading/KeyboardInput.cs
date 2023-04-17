@@ -87,37 +87,19 @@ namespace dmaTrainABS
                 var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
                 SimData.Updating = false; TrafficManager.UpdateTraffic(currentFrame);
                 TrafficLights.SetTrafficLights(SimData.Nodes);
+                string txt = "=== DATA LOADED ===";string NL = Environment.NewLine;
+                txt +=NL+ "Blocks: " + SimData.Blocks.Count + ", Nodes: " + SimData.Nodes.Count + ", Trains: " + SimData.Trains.Count;
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
             }
 
-            else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.D))
+            else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.T))
             {
                 if (_processed) return; _processed = true;
 
-                string nl = Environment.NewLine; string txt = "=== PATH TEST ===" + nl;
-                var pathManager = Singleton<PathManager>.instance;
-                var node1 = NetManager.instance.m_nodes.m_buffer[30799];
-                var node2 = NetManager.instance.m_nodes.m_buffer[5356];
-                var startPos = new PathUnit.Position { m_segment = 19101 };
-                var endPos = new PathUnit.Position { m_segment = 16513 };
-                if (pathManager.CreatePath(out uint unit, ref SimulationManager.instance.m_randomizer, 
-                    SimulationManager.instance.m_currentBuildIndex, startPos, endPos, NetInfo.LaneType.Vehicle, VehicleInfo.VehicleType.Train, VehicleInfo.VehicleCategory.All, 25))
-                {
-                    txt += "Path Unit: " + unit + nl;
-                    var pathUnit = pathManager.m_pathUnits.m_buffer[unit];
-                    for (int f = 0; f < pathUnit.m_positionCount; f++)
-                    {
-                        var pathPos1 = pathUnit.GetPosition(f);
-                        txt +="Pos: "+f.ToString("00")+ ", Segment: " + pathPos1.m_segment + ", Lane: " + pathPos1.m_lane + ", Offset: " + pathPos1.m_offset+nl;
-                    }
-                }
-                else
-                {
-                    txt += "Unable to create path.";
-                }
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
+                TrainData.ShowTrains(15305);
             }
 #endif
-            else if (TrainABSModData.ShowBlocks.IsPressed())
+                    else if (TrainABSModData.ShowBlocks.IsPressed())
             {
                 if (_processed) return; _processed = true;
 #if DEBUG

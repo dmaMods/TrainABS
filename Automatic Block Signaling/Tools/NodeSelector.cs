@@ -73,8 +73,8 @@ namespace dmaTrainABS
             bool isInsideUI = this.m_toolController.IsInsideUI;
             if (e.type == EventType.MouseDown && !isInsideUI)
             {
-                if (e.button == 0 /*&& e.shift && !e.alt*/)
-                { // Shift + LMB
+                if (e.button == 0)
+                {
                     if (this.cachedErrors == ToolErrors.None && (selectedNodeId != 0 || selectedSegmentId != 0))
                     {
                         if (Action == NodeAction.AddNode)
@@ -87,20 +87,22 @@ namespace dmaTrainABS
                         {
                             simulationManager.AddAction(this.ShowInfo());
                             var segments = BlockData.blockSegments.Where(x => x.SegmentId == selectedSegmentId);
-                            string block = ""; string laneInfo = "";
+                            string block = ""; string laneInfo = ""; string NL = Environment.NewLine;
                             foreach (var seg in segments)
-                                block += "Block: " + seg.BlockId + ", Lane: " + seg.Lane + LaneColor(seg.Lane) + Environment.NewLine;
+                                block += "Block: " + seg.BlockId + ", Lane: " + seg.Lane + LaneColor(seg.Lane) + NL;
                             NetNode netNode = netManager.m_nodes.m_buffer[selectedNodeId];
                             NetSegment netSegment = netManager.m_segments.m_buffer[selectedSegmentId];
                             var netLane = NetManager.instance.m_lanes.m_buffer[netSegment.m_lanes];
 
                             laneInfo += "m_lanes: " + netSegment.m_lanes + ", Flags: " + netLane.m_flags + ", Next Lane: " + netLane.m_nextLane;
+                            var sNode = selectedSegmentId.ToSegment().m_startNode;
+                            var eNode = selectedSegmentId.ToSegment().m_endNode;
 
-                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "Node ID: " + selectedNodeId + (selectedNodeId != 0 ? ", Flags: " + netNode.m_flags : "") + Environment.NewLine +
-                                "Segment: " + selectedSegmentId +
-                                ", Start Node: " + netSegment.m_startNode + ", End Node: " + netSegment.m_endNode + ", Flags: " + netSegment.m_flags +
-                                ", Direction: " + netSegment.m_startDirection + "-" + netSegment.m_endDirection +
-                                Environment.NewLine + block + Environment.NewLine + laneInfo);
+                            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message,
+                                "Start Node ID: " + sNode + ", Flags: " + sNode.ToNode().m_flags + NL +
+                                "End Node ID: " + eNode + ", Flags: " + eNode.ToNode().m_flags + NL +
+                                "Segment: " + selectedSegmentId + ", Flags: " + netSegment.m_flags + NL +
+                                block + Environment.NewLine + laneInfo);
                         }
                     }
                 }
@@ -373,12 +375,10 @@ namespace dmaTrainABS
 
             var blocks = BlockData.blockSegments.Where(x => x.SegmentId == segmentId).Select(x => x.BlockId).ToList();
             if (blocks.Count == 0) return;
-            BlockData.Info2 = blocks;
             var freeBlocks = new Dictionary<ushort, bool>();
-            var fBlocks = SimData.Blocks.Where(x => blocks.Contains(x.BlockId)).ToList();
-            BlockData.Info = fBlocks;
+            var fBlocks = SimData.Blocks.Where(x => blocks.Contains(x.Key)).ToList();
             foreach (var block in fBlocks)
-                freeBlocks.Add(block.BlockId, block.Blocked);
+                freeBlocks.Add(block.Key, block.Value.Blocked);
 
             var segments = BlockData.blockSegments.Where(x => blocks.Contains(x.BlockId)); Color colour = Color.cyan;
 
@@ -403,7 +403,7 @@ namespace dmaTrainABS
                 else
                 {
                     NetSegment.CalculateMiddlePoints(startPos, startDir, endPos, endDir, true, true, out Vector3 midPos1, out Vector3 midPos2);
-                    bezier = new Bezier3 { a = startPos, b = midPos1, c = midPos2, d = endPos};
+                    bezier = new Bezier3 { a = startPos, b = midPos1, c = midPos2, d = endPos };
                     colour = Color.white;
                 }
                 Singleton<RenderManager>.instance.OverlayEffect.DrawBezier(cameraInfo, colour, bezier.Flat(), preFab.m_halfWidth / 2.5f, 0, 0, -1f, 1280f, false, true);

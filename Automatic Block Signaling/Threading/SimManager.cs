@@ -32,7 +32,7 @@ namespace dmaTrainABS
             base.OnAfterSimulationFrame();
             if (!SimData.Nodes.IsValid()) return;
             var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            if (currentFrame % 10 == 0) TrafficManager.UpdateTraffic(currentFrame);
+            if (currentFrame % 15 == 0) TrafficManager.UpdateTraffic(currentFrame);
             TrafficLights.SetTrafficLights(SimData.Nodes);
         }
 

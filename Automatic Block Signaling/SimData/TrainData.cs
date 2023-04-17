@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using ColossalFramework.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,54 +93,97 @@ namespace dmaTrainABS
         #region PROCESS TRAINS
         public static void ProcessTrains()
         {
-            SimData.Updating = true;
-            // CLEAR BLOCKS
-            SimData.Blocks.All(c => { c.BlockedBy = 0; return true; });
-
-            // CURRENT POSITION
-            foreach (var train in SimData.Trains)
+            try
             {
-                train.CSegment = PathFinder.GetCurrentPosition(train, train.TrainID.FrontCar(), out PathUnit.Position trainCPos);
-                train.CBlock = GetCurrentBlock(train, trainCPos); train.Position = trainCPos;
-                SimData.GreenLights.Remove(train.CBlock);
-                if (train.CBlock != 0) SimData.UpdateBlock(train.CBlock, train.TrainID);
-            }
+                SimData.Updating = true;
 
-            // SET NEXT BLOCK
-            foreach (var train in SimData.Trains)
-            {
-                train.NSegment = PathFinder.GetNextPosition(vehicles[train.TrainID.FrontCar()], out PathUnit.Position trainNPos);
-                train.NBlock = GetNextBlock(train, train.CSegment, trainNPos);
+                // CURRENT POSITION
+                foreach (var train in SimData.Trains)
+                {
+                    List<PathUnit.Position> positions = PathFinder.GetCurrentPosition(train, train.TrainID.FrontCar());
+                    if (positions.Count() == 0) continue;
+                    train.CBlock = GetCurrentBlocks(train, positions); train.Position = positions[0];
+                    foreach (var cblock in train.CBlock)
+                    {
+                        SimData.GreenLights.Remove(cblock);
+                        SimData.UpdateBlock(cblock, train.TrainID);
+                    }
+                }
+
+                // SET NEXT BLOCK
+                foreach (var train in SimData.Trains)
+                {
+                    train.NSegment = PathFinder.GetNextPosition(vehicles[train.TrainID.FrontCar()], out PathUnit.Position trainNPos);
+                    train.NBlock = GetNextBlock(train, trainNPos);
+                }
+
+                // SET FREE BLOCKS
+                List<ushort> OccupiedBlocks = new List<ushort>();
+                foreach (var train in SimData.Trains)
+                    foreach (var block in train.CBlock)
+                        OccupiedBlocks.AddNew(block);
+                SimData.Blocks.Where(x => !OccupiedBlocks.Contains(x.Key)).All(c => { c.Value.BlockedBy = 0; return true; });
+
+                SimData.Updating = false;
             }
-            SimData.Updating = false;
+            catch (Exception ex) { DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, ex.Message + Environment.NewLine + ex.StackTrace); }
         }
 
-        private static ushort GetNextBlock(STrains train, List<ushort> cSegment, PathUnit.Position trainPos)
+        private static ushort GetNextBlock(STrains train, PathUnit.Position trainPos)
         {
-            if (train.NSegment.Count == 0) return 0;
-
-            var vFlags = vehicles[train.TrainID.FrontCar()].m_flags;
-            var sFlags = trainPos.m_segment.ToSegment().m_flags;
-
-            var psegments = BlockData.blockSegments.Where(x => x.SegmentId == trainPos.m_segment).Select(x => new { block = x.BlockId, lane = x.Lane, selected = x.Lane == trainPos.m_lane });
-
-            if (psegments.Count() == 0) return 0;
-            if (psegments.Count() == 1) return (ushort)psegments.FirstOrDefault()?.block;
-            return (ushort)psegments.FirstOrDefault(x => x.selected)?.block;
+            try
+            {
+                return (ushort)BlockData.blockSegments.FirstOrDefault(x => x.SegmentId == trainPos.m_segment && x.Lane == trainPos.m_lane)?.BlockId;
+            }
+            catch { return 0; }
         }
 
-        private static ushort GetCurrentBlock(STrains train, PathUnit.Position trainPos)
+        private static List<ushort> GetCurrentBlocks(STrains train, List<PathUnit.Position> trainPositions)
         {
-            if (train.CSegment.Count == 0) return 0;
+            List<ushort> ret = new List<ushort>();
 
-            var vFlags = vehicles[train.TrainID.FrontCar()].m_flags;
-            var sFlags = trainPos.m_segment.ToSegment().m_flags;
+            foreach (var trainPos in trainPositions)
+                ret.AddRange(BlockData.blockSegments.Where(x => x.SegmentId == trainPos.m_segment && x.Lane == trainPos.m_lane).Select(x => x.BlockId).ToList());
 
-            var psegments = BlockData.blockSegments.Where(x => x.SegmentId == trainPos.m_segment).Select(x => new { block = x.BlockId, lane = x.Lane, selected = x.Lane == trainPos.m_lane });
+            return ret.Distinct().ToList();
+        }
+        #endregion
 
-            if (psegments.Count() == 0) return 0;
-            if (psegments.Count() == 1) return (ushort)psegments.FirstOrDefault()?.block;
-            return (ushort)psegments.FirstOrDefault(x => x.selected)?.block;
+        #region DEBUG / SHOW TRAINS
+        public static void ShowTrains(ushort trainId)
+        {
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "=== TRAIN (" + trainId + ") DEBUG ===");
+
+            CheckTrains(); DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "CheckTrains... Pass");
+            ProcessTrains(); DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "ProcessTrains... Pass");
+
+            string NL = Environment.NewLine; string txt = "";
+            try
+            {
+                foreach (var train in SimData.Trains.Where(x => x.TrainID == trainId))
+                {
+                    var vehicle = vehicles[train.TrainID]; bool blockIsFree = false;
+                    bool reversed = (vehicle.m_flags & Vehicle.Flags.Reversed) != 0;
+                    bool isMain = (vehicle.m_flags & Vehicle.Flags.TransferToTarget) != 0 || (vehicle.m_flags & Vehicle.Flags.TransferToSource) != 0;
+                    ushort frontVehicleId = isMain && !reversed ? train.TrainID : vehicle.GetLastVehicle(train.TrainID);
+                    var nBlock = SimData.Blocks.ContainsKey(train.NBlock) ? SimData.Blocks[train.NBlock] : new SRailBlocks();
+                    var segment = train.CSegment.FirstOrDefault().ToSegment();
+
+                    txt += "Train #" + train.TrainID + (frontVehicleId != train.TrainID ? ", Front: " + frontVehicleId : "") +
+                             (TrafficManager.CanProceed(train, out bool FreeBlock) ? " (CP)" : "") +
+                             ", Lane: " + train.Position.m_lane + NodeSelector.LaneColor(train.Position.m_lane) + ", Segment (" + train.CSegment.Count + "): " + train.CSegment.FirstOrDefault() +
+                             ", Next (" + train.NSegment.Count + "): " + train.NSegment.FirstOrDefault() + ", Node: " + train.NodeID + NL +
+                                "Signal Node: " + train.SignalNode + ", Green Light: " + (SimData.GreenLights.Contains(train.NBlock) ? "Yes" : "No") +
+                                ", Yield Test: " + (frontVehicleId.ToVehicle().m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) && SimData.Nodes.Any(y => y.NodeID == train.NodeID) && train.NodeID != 0 && TrafficManager.CanProceed(train, out blockIsFree) ? "Pass" : "Failed") +
+                                ", Segment Test: " + (train.CSegment.Count() != 0 && blockIsFree ? "Pass" : "Failed (" + train.CSegment.Count() + ") " + blockIsFree) +
+                                ", Node " + train.NodeID + " Test: " + (SimData.Nodes.FirstOrDefault(x => x.NodeID == train.NodeID) != null ? "Pass" : "Failed") + NL +
+                                "Vehicle Flags: " + frontVehicleId.ToVehicle().m_flags + (frontVehicleId.ToVehicle().m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) ? ", Yielding" : "") + NL +
+                                "Current Blocks: " + string.Join(", ", train.CBlock.Select(x => x.ToString()).ToArray()) + NL +
+                                "Next Block: " + (train.NBlock != 0 ? train.NBlock + ", Node: " + nBlock.StartNode + ", " + (nBlock.Blocked ? "Blocked By: " + nBlock.BlockedBy : "Free") : "None");
+                }
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
+            }
+            catch (Exception ex) { DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, ex.Message + NL + ex.StackTrace); }
         }
         #endregion
     }

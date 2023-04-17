@@ -17,9 +17,6 @@ namespace dmaTrainABS
 
         private static readonly NetNode[] NetNodes = Singleton<NetManager>.instance.m_nodes.m_buffer;
 
-        public static List<SRailBlocks> Info { get; set; }
-        public static List<ushort> Info2 { get; internal set; }
-
         public static void LoadNetwork()
         {
             if (!SimData.Nodes.IsValid()) return;
@@ -110,19 +107,20 @@ namespace dmaTrainABS
             catch (Exception ex) { Debug.LogException(ex); }
         }
 
-        private static List<SRailBlocks> CreateRailwayBlocks()
+        private static Dictionary<ushort, SRailBlocks> CreateRailwayBlocks()
         {
-            List<SRailBlocks> rblocks = new List<SRailBlocks>();
+            Dictionary<ushort, SRailBlocks> rblocks = new Dictionary<ushort, SRailBlocks>();
             foreach (var block in blocks)
             {
-                rblocks.Add(new SRailBlocks
-                {
-                    BlockId = block.BlockId,
-                    StartNode = block.StartNode,
-                    EndNode = block.EndNode,
-                    BlockedBy = 0,
-                    Segments = blockSegments.Where(x => x.BlockId == block.BlockId).Select(x => x.SegmentId).ToList()
-                }); ;
+                rblocks.Add(
+                    block.BlockId,
+                    new SRailBlocks
+                    {
+                        StartNode = block.StartNode,
+                        EndNode = block.EndNode,
+                        BlockedBy = 0,
+                        Segments = blockSegments.Where(x => x.BlockId == block.BlockId).Select(x => x.SegmentId).ToList()
+                    }); ;
             }
             return rblocks;
         }
@@ -282,33 +280,22 @@ namespace dmaTrainABS
             }
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
 
-            bText = "=== BLOCKS ===" + NL;
-            foreach (var block in blocks)
+            bText = "=== RAILWAY BLOCKS ===" + NL;
+            foreach (var block in SimData.Blocks)
             {
-                bText += "Block " + block.BlockId + ", Start Node: " + block.StartNode + ", End Node: " + block.EndNode + ", Segments: " + blockSegments.Count(x => x.BlockId == block.BlockId) +
-                    ", First Segment: " + blockSegments.FirstOrDefault(x => x.BlockId == block.BlockId)?.SegmentId +
-                    ", Last Segment: " + blockSegments.LastOrDefault(x => x.BlockId == block.BlockId)?.SegmentId + NL;
+                bText += "Block " + block.Key + ", Start Node: " + block.Value.StartNode + ", End Node: " + block.Value.EndNode + ", Segments: " + blockSegments.Count(x => x.BlockId == block.Key) +
+                    ", First Segment: " + blockSegments.FirstOrDefault(x => x.BlockId == block.Key)?.SegmentId +
+                    ", Last Segment: " + blockSegments.LastOrDefault(x => x.BlockId == block.Key)?.SegmentId + NL;
             }
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
 
             bText = "=== SEGMENTS ===" + NL; cdnt = 0;
-            foreach (var seg in blockSegments.Where(x => x.BlockId == 1008))
+            foreach (var seg in blockSegments.Where(x => x.BlockId == 1000))
             {
                 cdnt++;
                 bText += "Segment " + cdnt.ToString("000") + ": " + seg.SegmentId + (seg.Inverted ? " Inverted" : "") + (seg.EndSegment ? " End" : "") +
                  ", Lane: " + seg.Lane + ", Start Node: " + seg.StartNode + ", End Node: " + seg.EndNode + ", BlockId: " + seg.BlockId + NL;
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
-
-            bText = "=== INFO DATA ===" + NL; cdnt = 0;
-            if (Info != null)
-                foreach (var info in Info)
-                {
-                    cdnt++;
-                    bText += cdnt.ToString("000") + " - Block: " + info.BlockId + ", Blocked: " + info.Blocked + NL;
-                }
-            if (Info2 != null)
-                bText += "Selected Blocks: " + string.Join(", ", Info2.Select(x => x.ToString()).ToArray()) + " / Railway Blocks: " + SimData.Blocks.Count + NL;
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
         }
 

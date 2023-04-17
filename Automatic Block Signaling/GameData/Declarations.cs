@@ -45,14 +45,14 @@ namespace dmaTrainABS.GameData
             public ushort SignalNode { get; set; } = 0;
             public ushort FirstVehicle { get; set; } = 0;
             public ushort LastVehicle { get; set; } = 0;
-            public ushort CBlock { get; set; } = 0;
+            public List<ushort> CBlock { get; set; } = new List<ushort>();
             public ushort NBlock { get; set; } = 0;
             public PathUnit.Position Position { get; internal set; }
         }
 
         public class SRailBlocks
         {
-            public ushort BlockId { get; set; }
+            //public ushort BlockId { get; set; }
             public ushort BlockedBy { get; set; }
             public ushort StartNode { get; set; }
             public ushort EndNode { get; set; }

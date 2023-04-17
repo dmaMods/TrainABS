@@ -47,7 +47,8 @@ namespace dmaTrainABS
                                 segment.LockedBy = 0;
                                 segment.GreenState = false;
                                 train.SignalNode = 0;
-                                SimData.GreenLights.Remove(train.CBlock);
+                                foreach (var cblock in train.CBlock)
+                                    SimData.GreenLights.Remove(cblock);
                             }
                         }
                     }
@@ -73,7 +74,8 @@ namespace dmaTrainABS
                             ClearProcessId(wl.ProcessId);
                             train.SignalNode = train.NodeID;
                             SimData.GreenLights.AddNew(train.NBlock);
-                            SimData.UpdateBlock(train.CBlock, train.TrainID);
+                            foreach (var cblock in train.CBlock)
+                                SimData.UpdateBlock(cblock, train.TrainID);
                             SimData.UpdateBlock(train.NBlock, train.TrainID);
                         }
                     }
@@ -93,8 +95,8 @@ namespace dmaTrainABS
         {
             if (train.NBlock == 0 && train.CSegment.OutOfArea()) { blockIsFree = true; return true; }
             if (train.NBlock == 0) { blockIsFree = true; return false; }
-            if (train.NSegment[0].ToSegment().m_flags.IsFlagSet(NetSegment.Flags.End) || train.NSegment[0].ToSegment().m_flags.IsFlagSet(NetSegment.Flags.TrafficEnd)) { blockIsFree = true; return true; }
-            var block = SimData.Blocks.FirstOrDefault(x => x.BlockId == train.NBlock);
+            if (train.NSegment[0].ToSegment().m_flags.IsFlagSet(NetSegment.Flags.End)) { blockIsFree = true; return true; }
+            var block = SimData.Blocks[train.NBlock];
             blockIsFree = !SimData.GreenLights.Contains(train.NBlock) &&
                 (!block.Blocked || train.NSegment.OutOfArea());
             return blockIsFree;

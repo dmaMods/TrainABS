@@ -1,4 +1,5 @@
 ﻿using ColossalFramework;
+using ColossalFramework.Plugins;
 using dmaTrainABS.GameData;
 using System;
 using System.Collections.Generic;
@@ -10,24 +11,32 @@ namespace dmaTrainABS
     {
         private static readonly PathManager pathManager = Singleton<PathManager>.instance;
 
-        internal static List<ushort> GetCurrentPosition(Declarations.STrains train, ushort frontVehicleId, out PathUnit.Position Position)
+        internal static List<PathUnit.Position> GetCurrentPosition(Declarations.STrains train, ushort frontVehicleId)
         {
-            List<ushort> segments = new List<ushort>(); ushort nodeId = 0; ushort dummy = 0;
-            segments.Add(TrainPosition(frontVehicleId.ToVehicle(), ref nodeId, out PathUnit.Position fPosition));
-            train.NodeID = nodeId; Position = fPosition;
-
-            foreach (ushort trailer in train.Trailers.Where(x => x != frontVehicleId))
+            try
             {
-                segments.AddNew(TrainPosition(trailer.ToVehicle(), ref dummy, out PathUnit.Position tPosition));
+                List<PathUnit.Position> positions = new List<PathUnit.Position>(); ushort nodeId = 0; ushort dummy = 0;
+                train.CSegment = new List<ushort>();
+                train.CSegment.Add(TrainPosition(frontVehicleId.ToVehicle(), ref nodeId, out PathUnit.Position fPosition));
+                train.NodeID = nodeId; positions.Add(fPosition);
+
+                foreach (ushort trailer in train.Trailers.Where(x => x != frontVehicleId))
+                {
+                    train.CSegment.AddNew(TrainPosition(trailer.ToVehicle(), ref dummy, out PathUnit.Position tPosition));
+                    positions.AddNew(tPosition);
+                }
+
+                if (train.TrainID != frontVehicleId)
+                {
+                    train.CSegment.AddNew(TrainPosition(train.TrainID.ToVehicle(), ref dummy, out PathUnit.Position tPosition));
+                    positions.AddNew(tPosition);
+                }
+                return positions;
             }
-
-            if (train.TrainID != frontVehicleId)
-                segments.AddNew(TrainPosition(train.TrainID.ToVehicle(), ref dummy, out PathUnit.Position tPosition));
-
-            return segments;
+            catch { return new List<PathUnit.Position>(); }
         }
 
-        internal static List<ushort> GetNextPosition(Vehicle vehicle,  out PathUnit.Position Position)
+        internal static List<ushort> GetNextPosition(Vehicle vehicle, out PathUnit.Position Position)
         {
             List<ushort> segments = new List<ushort>();
             uint pathUnitId = vehicle.m_path;
@@ -35,31 +44,8 @@ namespace dmaTrainABS
 
             byte pathPosIndex = vehicle.m_pathPositionIndex;
             if (pathPosIndex == 255) pathPosIndex = 0; pathPosIndex = (byte)(pathPosIndex >> 1);
-            pathUnit.GetPosition(pathPosIndex, out PathUnit.Position curPos);
-            Position = curPos; bool posSet = false;
-
-            if (pathPosIndex + 1 < pathUnit.m_positionCount)
-            {
-                for (int f = pathPosIndex + 1; f < pathUnit.m_positionCount; f++)
-                {
-                    pathUnit.GetPosition(f, out PathUnit.Position nextPos);
-                    segments.Add(nextPos.m_segment);
-                    if (!posSet) { Position = nextPos; break; }
-                }
-            }
-            else
-            {
-                if (pathUnit.m_nextPathUnit != 0)
-                {
-                    pathUnit = pathManager.m_pathUnits.m_buffer[pathUnit.m_nextPathUnit];
-                    for (int f = 0; f < pathUnit.m_positionCount; f++)
-                    {
-                        pathUnit.GetPosition(f, out PathUnit.Position nextPos);
-                        segments.Add(nextPos.m_segment);
-                        if (!posSet) { Position = nextPos; break; }
-                    }
-                }
-            }
+            pathUnit.GetNextPosition(pathPosIndex, out PathUnit.Position nextPos);
+            segments.Add(nextPos.m_segment); Position = nextPos;
 
             return segments;
         }
