@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColossalFramework.Plugins;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -87,6 +88,14 @@ namespace dmaTrainABS
                 Nodes.RemoveAll(x => x.NodeID == 0);
             }
             catch (Exception ex) { Debug.LogException(ex); }
+        }
+
+        public static void ShowStats()
+        {
+            string txt = "=== TRAIN ABS STATS ==="; string NL = Environment.NewLine;
+            txt += NL + "Blocks: " + Blocks.Count + ", Nodes: " + Nodes.Count + ", Trains: " + Trains.Count;
+            txt += NL + "Waiting List: " + WaitingList.Count;
+            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
         }
 
     }

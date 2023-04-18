@@ -98,8 +98,15 @@ namespace dmaTrainABS
 
                 TrainData.ShowTrains(15305);
             }
+
+            else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.D))
+            {
+                if (_processed) return; _processed = true;
+
+                SimData.ShowStats();
+            }
 #endif
-                    else if (TrainABSModData.ShowBlocks.IsPressed())
+            else if (TrainABSModData.ShowBlocks.IsPressed())
             {
                 if (_processed) return; _processed = true;
 #if DEBUG

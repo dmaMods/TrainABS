@@ -1,4 +1,5 @@
-﻿using dmaTrainABS.Patching;
+﻿using ColossalFramework;
+using dmaTrainABS.Patching;
 using ICities;
 
 namespace dmaTrainABS
@@ -16,11 +17,18 @@ namespace dmaTrainABS
             if (mode == LoadMode.LoadGame || mode == LoadMode.NewGame || mode == LoadMode.LoadMap || mode == LoadMode.NewMap)
             {
                 Patcher.ForcePatch();
+                SimData.Updating = true;
+                
                 SimData.InitData(); DataManager.Load();
-                if (!SimData.Blocks.IsValid()) BlockData.LoadNetwork();
-                if (!SimData.Trains.IsValid()) TrainData.LoadTrains();
+                
                 SimData.CheckNodes();
-                TrafficManager.UpdateTraffic(0);
+                
+                BlockData.LoadNetwork();
+                TrainData.LoadTrains();
+
+                var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+                SimData.Updating = false; TrafficManager.UpdateTraffic(currentFrame);
+
                 TrafficLights.SetTrafficLights(SimData.Nodes);
             }
         }

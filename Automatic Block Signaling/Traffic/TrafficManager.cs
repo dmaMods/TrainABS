@@ -13,6 +13,7 @@ namespace dmaTrainABS
         public static void UpdateTraffic(uint frameIndex)
         {
             if (SimData.Updating) return;
+            SimData.Updating = true;
             try
             {
                 if (SimData.UpdateRequired) BlockData.LoadNetwork();
@@ -83,6 +84,7 @@ namespace dmaTrainABS
                 SimData.WaitingList.RemoveAll(x => x.Processed);
             }
             catch (Exception ex) { Debug.LogException(ex); }
+            SimData.Updating = false;
         }
 
         private static void ClearProcessId(int processId)

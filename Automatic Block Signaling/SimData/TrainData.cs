@@ -95,8 +95,6 @@ namespace dmaTrainABS
         {
             try
             {
-                SimData.Updating = true;
-
                 // CURRENT POSITION
                 foreach (var train in SimData.Trains)
                 {
@@ -123,8 +121,6 @@ namespace dmaTrainABS
                     foreach (var block in train.CBlock)
                         OccupiedBlocks.AddNew(block);
                 SimData.Blocks.Where(x => !OccupiedBlocks.Contains(x.Key)).All(c => { c.Value.BlockedBy = 0; return true; });
-
-                SimData.Updating = false;
             }
             catch (Exception ex) { DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, ex.Message + Environment.NewLine + ex.StackTrace); }
         }
