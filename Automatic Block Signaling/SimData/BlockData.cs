@@ -21,6 +21,7 @@ namespace dmaTrainABS
         {
             if (!SimData.Nodes.IsValid()) return;
 
+            SimData.ProcessN++;
             blockSegments = new List<Segment>();
             blocks = new List<Block>();
             blockNodes = new List<Node>();
@@ -105,6 +106,12 @@ namespace dmaTrainABS
                 SimData.UpdateRequired = false;
             }
             catch (Exception ex) { Debug.LogException(ex); }
+            if (IsDebugMode)
+            {
+                string txt = "[TrainABS] Network updated. Blocks: " + blocks.Count + ", Nodes: " + blockNodes.Count + ", Junctions: " + blockNodes.Count(x => x.IsJunction) + ", Segments: " + blockSegments.Count;
+
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
+            }
         }
 
         private static Dictionary<ushort, SRailBlocks> CreateRailwayBlocks()
@@ -116,8 +123,6 @@ namespace dmaTrainABS
                     block.BlockId,
                     new SRailBlocks
                     {
-                        StartNode = block.StartNode,
-                        EndNode = block.EndNode,
                         BlockedBy = 0,
                         Segments = blockSegments.Where(x => x.BlockId == block.BlockId).Select(x => x.SegmentId).ToList()
                     }); ;
@@ -272,31 +277,31 @@ namespace dmaTrainABS
             bText += "Blocks: " + blocks.Count + ", Nodes: " + blockNodes.Count + ", Junctions: " + blockNodes.Count(x => x.IsJunction) + ", Segments: " + blockSegments.Count;
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
 
-            bText = "=== JUNCTION NODES ===" + NL; int cdnt = 0;
-            foreach (var node in blockNodes.Where(x => x.IsJunction))
-            {
-                cdnt++;
-                bText += "Node " + cdnt.ToString("000") + ": " + node.NodeId + ", Segments: " + node.Segments + ", Flags: " + NetNodes[node.NodeId].m_flags + NL;
-            }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
+            //bText = "=== JUNCTION NODES ===" + NL; int cdnt = 0;
+            //foreach (var node in blockNodes.Where(x => x.IsJunction))
+            //{
+            //    cdnt++;
+            //    bText += "Node " + cdnt.ToString("000") + ": " + node.NodeId + ", Segments: " + node.Segments + ", Flags: " + NetNodes[node.NodeId].m_flags + NL;
+            //}
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
 
-            bText = "=== RAILWAY BLOCKS ===" + NL;
-            foreach (var block in SimData.Blocks)
-            {
-                bText += "Block " + block.Key + ", Start Node: " + block.Value.StartNode + ", End Node: " + block.Value.EndNode + ", Segments: " + blockSegments.Count(x => x.BlockId == block.Key) +
-                    ", First Segment: " + blockSegments.FirstOrDefault(x => x.BlockId == block.Key)?.SegmentId +
-                    ", Last Segment: " + blockSegments.LastOrDefault(x => x.BlockId == block.Key)?.SegmentId + NL;
-            }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
+            //bText = "=== RAILWAY BLOCKS ===" + NL;
+            //foreach (var block in SimData.Blocks)
+            //{
+            //    bText += "Block " + block.Key + ", Start Node: " + block.Value.StartNode + ", End Node: " + block.Value.EndNode + ", Segments: " + blockSegments.Count(x => x.BlockId == block.Key) +
+            //        ", First Segment: " + blockSegments.FirstOrDefault(x => x.BlockId == block.Key)?.SegmentId +
+            //        ", Last Segment: " + blockSegments.LastOrDefault(x => x.BlockId == block.Key)?.SegmentId + NL;
+            //}
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
 
-            bText = "=== SEGMENTS ===" + NL; cdnt = 0;
-            foreach (var seg in blockSegments.Where(x => x.BlockId == 1000))
-            {
-                cdnt++;
-                bText += "Segment " + cdnt.ToString("000") + ": " + seg.SegmentId + (seg.Inverted ? " Inverted" : "") + (seg.EndSegment ? " End" : "") +
-                 ", Lane: " + seg.Lane + ", Start Node: " + seg.StartNode + ", End Node: " + seg.EndNode + ", BlockId: " + seg.BlockId + NL;
-            }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
+            //bText = "=== SEGMENTS ===" + NL; cdnt = 0;
+            //foreach (var seg in blockSegments.Where(x => x.BlockId == 1000))
+            //{
+            //    cdnt++;
+            //    bText += "Segment " + cdnt.ToString("000") + ": " + seg.SegmentId + (seg.Inverted ? " Inverted" : "") + (seg.EndSegment ? " End" : "") +
+            //     ", Lane: " + seg.Lane + ", Start Node: " + seg.StartNode + ", End Node: " + seg.EndNode + ", BlockId: " + seg.BlockId + NL;
+            //}
+            //DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, bText);
         }
 
     }

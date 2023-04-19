@@ -12,11 +12,14 @@ namespace dmaTrainABS
 
         public static void UpdateTraffic(uint frameIndex)
         {
-            if (SimData.Updating) return;
-            SimData.Updating = true;
+            if (SimData.Updating) { SimData.ProcessS++; return; }
+            if (!SimData.Nodes.IsValid()) return;
+
+            SimData.Updating = true; SimData.ProcessD++;
+            SimData.CheckNodes();
             try
             {
-                if (SimData.UpdateRequired) BlockData.LoadNetwork();
+                if (SimData.UpdateRequired || ForcedUpdate()) BlockData.LoadNetwork();
                 TrainData.LoadTrains();
                 int Cnt = SimData.WaitingList.Count == 0 ? 1000 : SimData.WaitingList.Max(x => x.ProcessId) + 1;
 
@@ -74,7 +77,7 @@ namespace dmaTrainABS
                             segment.GreenState = true;
                             ClearProcessId(wl.ProcessId);
                             train.SignalNode = train.NodeID;
-                            SimData.GreenLights.AddNew(train.NBlock);
+                            SimData.GreenLights.AddNew(train.NBlock, train.TrainID);
                             foreach (var cblock in train.CBlock)
                                 SimData.UpdateBlock(cblock, train.TrainID);
                             SimData.UpdateBlock(train.NBlock, train.TrainID);
@@ -85,6 +88,11 @@ namespace dmaTrainABS
             }
             catch (Exception ex) { Debug.LogException(ex); }
             SimData.Updating = false;
+        }
+
+        private static bool ForcedUpdate()
+        {
+            return SimData.ProcessD == 10 || SimData.ProcessD == 20;
         }
 
         private static void ClearProcessId(int processId)
@@ -99,7 +107,7 @@ namespace dmaTrainABS
             if (train.NBlock == 0) { blockIsFree = true; return false; }
             if (train.NSegment[0].ToSegment().m_flags.IsFlagSet(NetSegment.Flags.End)) { blockIsFree = true; return true; }
             var block = SimData.Blocks[train.NBlock];
-            blockIsFree = !SimData.GreenLights.Contains(train.NBlock) &&
+            blockIsFree = !SimData.GreenLights.Any(x => x.BlockId == train.NBlock) &&
                 (!block.Blocked || train.NSegment.OutOfArea());
             return blockIsFree;
         }

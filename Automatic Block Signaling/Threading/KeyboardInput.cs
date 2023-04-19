@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Plugins;
+using static dmaTrainABS.GameData.Declarations;
 using System;
 using UnityEngine;
 
@@ -76,6 +77,11 @@ namespace dmaTrainABS
 
                 SimData.Updating = true; SimData.InitData();
                 DataManager.Load();
+                if (IsDebugMode)
+                {
+                    string txt = "[TrainABS] Data loaded. Nodes: " + SimData.Nodes.Count;
+                    DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
+                }
                 SimData.CheckNodes();
 
                 BlockData.LoadNetwork();
@@ -87,9 +93,6 @@ namespace dmaTrainABS
                 var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
                 SimData.Updating = false; TrafficManager.UpdateTraffic(currentFrame);
                 TrafficLights.SetTrafficLights(SimData.Nodes);
-                string txt = "=== DATA LOADED ===";string NL = Environment.NewLine;
-                txt +=NL+ "Blocks: " + SimData.Blocks.Count + ", Nodes: " + SimData.Nodes.Count + ", Trains: " + SimData.Trains.Count;
-                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
             }
 
             else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.T))

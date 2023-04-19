@@ -120,6 +120,7 @@ namespace dmaTrainABS
                 foreach (var train in SimData.Trains)
                     foreach (var block in train.CBlock)
                         OccupiedBlocks.AddNew(block);
+                SimData.OccupiedBlocks = OccupiedBlocks.Count;
                 SimData.Blocks.Where(x => !OccupiedBlocks.Contains(x.Key)).All(c => { c.Value.BlockedBy = 0; return true; });
             }
             catch (Exception ex) { DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, ex.Message + Environment.NewLine + ex.StackTrace); }
@@ -169,13 +170,13 @@ namespace dmaTrainABS
                              (TrafficManager.CanProceed(train, out bool FreeBlock) ? " (CP)" : "") +
                              ", Lane: " + train.Position.m_lane + NodeSelector.LaneColor(train.Position.m_lane) + ", Segment (" + train.CSegment.Count + "): " + train.CSegment.FirstOrDefault() +
                              ", Next (" + train.NSegment.Count + "): " + train.NSegment.FirstOrDefault() + ", Node: " + train.NodeID + NL +
-                                "Signal Node: " + train.SignalNode + ", Green Light: " + (SimData.GreenLights.Contains(train.NBlock) ? "Yes" : "No") +
+                                "Signal Node: " + train.SignalNode + ", Green Light: " + (SimData.GreenLights.Any(x=>x.BlockId==train.NBlock) ? "Yes" : "No") +
                                 ", Yield Test: " + (frontVehicleId.ToVehicle().m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) && SimData.Nodes.Any(y => y.NodeID == train.NodeID) && train.NodeID != 0 && TrafficManager.CanProceed(train, out blockIsFree) ? "Pass" : "Failed") +
                                 ", Segment Test: " + (train.CSegment.Count() != 0 && blockIsFree ? "Pass" : "Failed (" + train.CSegment.Count() + ") " + blockIsFree) +
                                 ", Node " + train.NodeID + " Test: " + (SimData.Nodes.FirstOrDefault(x => x.NodeID == train.NodeID) != null ? "Pass" : "Failed") + NL +
                                 "Vehicle Flags: " + frontVehicleId.ToVehicle().m_flags + (frontVehicleId.ToVehicle().m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) ? ", Yielding" : "") + NL +
                                 "Current Blocks: " + string.Join(", ", train.CBlock.Select(x => x.ToString()).ToArray()) + NL +
-                                "Next Block: " + (train.NBlock != 0 ? train.NBlock + ", Node: " + nBlock.StartNode + ", " + (nBlock.Blocked ? "Blocked By: " + nBlock.BlockedBy : "Free") : "None");
+                                "Next Block: " + (train.NBlock != 0 ? train.NBlock /*+ ", Node: " + nBlock.StartNode + ", "*/ + (nBlock.Blocked ? "Blocked By: " + nBlock.BlockedBy : "Free") : "None");
                 }
                 DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
             }

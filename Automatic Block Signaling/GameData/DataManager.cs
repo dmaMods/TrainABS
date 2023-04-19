@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using System;
 using static dmaTrainABS.XMLData.SaveGame;
 using static dmaTrainABS.GameData.Declarations;
+using ColossalFramework.Plugins;
 
 namespace dmaTrainABS
 {
@@ -76,7 +77,6 @@ namespace dmaTrainABS
                         NetManager.instance.m_nodes.m_buffer[node.NodeID].m_flags = flags;
                     }
                 }
-
             }
             catch { }
             finally { memoryStream.Close(); }

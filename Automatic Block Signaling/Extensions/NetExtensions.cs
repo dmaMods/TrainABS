@@ -128,6 +128,31 @@ namespace dmaTrainABS
 
         internal static NetSegment GetSegment(this ushort SegmentId) => segments[SegmentId];
 
+        public static List<SGreenList> Remove(this List<SGreenList> list, ushort blockId)
+        {
+            list.RemoveAll(x => x.BlockId == blockId);
+            return list;
+        }
+
+        public static List<SGreenList> AddNew(this List<SGreenList> list, ushort blockId, ushort trainId)
+        {
+            if (list.Any(x => x.BlockId == blockId))
+            {
+                var item = list.FirstOrDefault(x => x.BlockId == blockId);
+                item.TrainId = trainId;
+            }
+            else if (list.Any(x => x.TrainId == trainId))
+            {
+                var item = list.FirstOrDefault(x => x.TrainId == trainId);
+                item.BlockId = blockId;
+            }
+            else
+            {
+                list.Add(new SGreenList { BlockId = blockId, TrainId = trainId });
+            }
+            return list;
+        }
+
         public static ref NetSegment ToSegment(this ushort segmentId) => ref segments[segmentId];
 
         public static Vehicle ToVehicle(this ushort vehicleId) => vehicles[vehicleId];

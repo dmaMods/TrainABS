@@ -15,9 +15,13 @@ namespace dmaTrainABS
         public static List<SNodeData> Nodes { get => nodes; set { nodes = value; UpdateRequired = true; } }
         public static Dictionary<ushort, SRailBlocks> Blocks { get; set; } = new Dictionary<ushort, SRailBlocks>();
         public static bool UpdateRequired { get; set; } = false;
-        public static List<ushort> GreenLights { get; set; } = new List<ushort>();
+        public static List<SGreenList> GreenLights { get; set; } = new List<SGreenList>();
         public static List<SWaitingList> WaitingList { get; set; } = new List<SWaitingList>();
         public static bool Updating { get; set; } = false;
+        public static int ProcessD { get; set; }
+        public static int ProcessS { get; set; }
+        public static int ProcessN { get; set; }
+        public static int OccupiedBlocks { get; internal set; }
 
         public static void InitData(bool InitAll = true)
         {
@@ -27,7 +31,7 @@ namespace dmaTrainABS
             Trains = new List<STrains>();
             UpdateRequired = false;
             WaitingList = new List<SWaitingList>();
-            GreenLights = new List<ushort>();
+            GreenLights = new List<SGreenList>();
         }
 
         public static void UpdateBlock(ushort blockId, ushort trainId)
@@ -50,6 +54,7 @@ namespace dmaTrainABS
                 {
                     Nodes.Add(new SNodeData { NodeID = nodeID, Segments = nodeSegments });
                 }
+                UpdateRequired = true;
                 CheckNodes();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -61,9 +66,8 @@ namespace dmaTrainABS
             {
                 if (nodeID == 0) return;
                 if (!Nodes.IsValid()) return;
-
                 Nodes.RemoveAll(x => x.NodeID == nodeID);
-
+                UpdateRequired = true;
                 CheckNodes();
             }
             catch (Exception ex) { Debug.LogException(ex); }
@@ -82,7 +86,7 @@ namespace dmaTrainABS
                     else
                     {
                         WaitingList.RemoveAll(x => x.NodeId == node.NodeID);
-                        node.NodeID = 0;
+                        node.NodeID = 0; SimData.UpdateRequired = true;
                     }
                 }
                 Nodes.RemoveAll(x => x.NodeID == 0);
@@ -94,7 +98,8 @@ namespace dmaTrainABS
         {
             string txt = "=== TRAIN ABS STATS ==="; string NL = Environment.NewLine;
             txt += NL + "Blocks: " + Blocks.Count + ", Nodes: " + Nodes.Count + ", Trains: " + Trains.Count;
-            txt += NL + "Waiting List: " + WaitingList.Count;
+            txt += NL + "Waiting List: " + WaitingList.Count + ", Process: " + ProcessD + "/" + ProcessS + "/" + ProcessN + ", Green List: " + SimData.GreenLights.Count;
+            txt += NL + "Occupied blocks: " + OccupiedBlocks + " (" + Math.Round(OccupiedBlocks * 100d / Blocks.Count) + "%)";
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
         }
 
