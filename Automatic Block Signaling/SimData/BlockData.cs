@@ -71,7 +71,7 @@ namespace dmaTrainABS
                             HaveLights = NetNodes[eNode].m_flags.IsFlagSet(NetNode.Flags.TrafficLights),
                             IsJunction = NetNodes[eNode].IsValidJunction()
                         });
-                    bool endSegment = segment.m_flags.IsFlagSet(NetSegment.Flags.End) || segment.m_flags.IsFlagSet(NetSegment.Flags.TrafficEnd);
+                    bool endSegment = segment.m_flags.IsFlagSet(NetSegment.Flags.End);
                     bool inverted = segment.m_flags.IsFlagSet(NetSegment.Flags.Invert);
 
                     if (!blockSegments.Any(x => x.SegmentId == seg) &&

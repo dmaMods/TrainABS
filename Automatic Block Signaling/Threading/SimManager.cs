@@ -18,21 +18,20 @@ namespace dmaTrainABS
         public override void OnAfterSimulationTick()
         {
             base.OnAfterSimulationTick();
-
         }
 
         public override void OnUpdate(float realTimeDelta, float simulationTimeDelta)
         {
             base.OnUpdate(realTimeDelta, simulationTimeDelta);
             KeyboardInput.CheckInput();
+            var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+            if (currentFrame % 15 == 0) TrafficManager.UpdateTraffic(currentFrame);
+            TrafficLights.SetTrafficLights(SimData.Nodes);
         }
 
         public override void OnAfterSimulationFrame()
         {
             base.OnAfterSimulationFrame();
-            var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
-            if (currentFrame % 15 == 0) TrafficManager.UpdateTraffic(currentFrame);
-            TrafficLights.SetTrafficLights(SimData.Nodes);
         }
 
     }

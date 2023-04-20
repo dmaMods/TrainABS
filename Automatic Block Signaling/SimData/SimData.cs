@@ -11,7 +11,7 @@ namespace dmaTrainABS
     {
         private static List<SNodeData> nodes = new List<SNodeData>();
 
-        public static List<STrains> Trains { get; set; } = new List<STrains>();
+        public static Dictionary<ushort, STrains> Trains { get; set; } = new Dictionary<ushort, STrains>();
         public static List<SNodeData> Nodes { get => nodes; set { nodes = value; UpdateRequired = true; } }
         public static Dictionary<ushort, SRailBlocks> Blocks { get; set; } = new Dictionary<ushort, SRailBlocks>();
         public static bool UpdateRequired { get; set; } = false;
@@ -28,7 +28,7 @@ namespace dmaTrainABS
             if (InitAll)
                 Nodes = new List<SNodeData>();
             Blocks = new Dictionary<ushort, SRailBlocks>();
-            Trains = new List<STrains>();
+            Trains = new Dictionary<ushort, STrains>();
             UpdateRequired = false;
             WaitingList = new List<SWaitingList>();
             GreenLights = new List<SGreenList>();

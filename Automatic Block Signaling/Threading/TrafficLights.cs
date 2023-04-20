@@ -77,11 +77,12 @@ namespace dmaTrainABS
             Segments[SegmentId].m_trafficLightState1 = 0b0000000000000000;
         }
 
-        internal static void ClearGreen(STrains train)
+        internal static void ClearGreen(ushort trainId)
         {// fix for extra long trains
+            var train = SimData.Trains[trainId];
             var node = SimData.Nodes.FirstOrDefault(x => x.NodeID == train.SignalNode);
             if (node == null) return;
-            var segment = node.Segments.FirstOrDefault(x => x.LockedBy == train.TrainID && x.GreenState);
+            var segment = node.Segments.FirstOrDefault(x => x.LockedBy == trainId && x.GreenState);
             if (segment == null) return;
             segment.LockedBy = 0;
             segment.GreenState = false;

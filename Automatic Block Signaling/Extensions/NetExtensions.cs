@@ -66,7 +66,7 @@ namespace dmaTrainABS
             return true;
         }
 
-        public static bool IsValid(this List<STrains> sTrains)
+        public static bool IsValid(this Dictionary<ushort, STrains> sTrains)
         {
             if (sTrains == null) return false;
             if (sTrains.Count == 0) return false;
@@ -82,7 +82,19 @@ namespace dmaTrainABS
 
         public static List<SWaitingList> AddNew(this List<SWaitingList> list, SWaitingList item)
         {
-            if (!list.Any(x => x.NodeId == item.NodeId && x.TrainId == item.TrainId)) list.Add(item);
+            if (list.Any(x => x.TrainId == item.TrainId))
+            {
+                foreach (var update in list.Where(x => x.TrainId == item.TrainId))
+                {
+                    update.NodeId = item.NodeId;
+                    update.Processed = false;
+                    update.ProcessId = item.ProcessId;
+                }
+            }
+            else
+            {
+                list.Add(item);
+            }
             return list;
         }
 

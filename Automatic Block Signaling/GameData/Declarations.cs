@@ -16,6 +16,7 @@ namespace dmaTrainABS.GameData
             public int ProcessId { get; set; }
             public ushort TrainId { get; set; }
             public bool Processed { get; set; }
+            public ushort BlockId { get; set; }
         }
 
         public class SGreenList
@@ -39,7 +40,7 @@ namespace dmaTrainABS.GameData
 
         public class STrains
         {
-            public ushort TrainID { get; set; } = 0;
+            public ushort SignalBlock { get; set; } = 0;
             public List<ushort> Trailers { get; set; } = new List<ushort>();
             public ushort NodeID { get; set; } = 0;
             public List<ushort> CSegment { get; set; } = new List<ushort>();
@@ -49,7 +50,8 @@ namespace dmaTrainABS.GameData
             public ushort LastVehicle { get; set; } = 0;
             public List<ushort> CBlock { get; set; } = new List<ushort>();
             public ushort NBlock { get; set; } = 0;
-            public PathUnit.Position Position { get; internal set; }
+            public PathUnit.Position Position { get; set; }
+            public bool GreenLight { get; set; } = false;
         }
 
         public class SRailBlocks

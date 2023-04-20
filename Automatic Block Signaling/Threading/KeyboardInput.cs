@@ -99,7 +99,7 @@ namespace dmaTrainABS
             {
                 if (_processed) return; _processed = true;
 
-                TrainData.ShowTrains(15305);
+                TrainData.ShowTrains();
             }
 
             else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.D))
@@ -107,6 +107,16 @@ namespace dmaTrainABS
                 if (_processed) return; _processed = true;
 
                 SimData.ShowStats();
+            }
+
+            else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.K))
+            {
+                if (_processed) return; _processed = true;
+
+                SimData.GreenLights.Clear();
+                foreach (var node in SimData.Nodes)
+                    foreach (var seg in node.Segments) { seg.LockedBy = 0; seg.GreenState = false; }
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "[TrainABS] Green list cleared.");
             }
 #endif
             else if (TrainABSModData.ShowBlocks.IsPressed())

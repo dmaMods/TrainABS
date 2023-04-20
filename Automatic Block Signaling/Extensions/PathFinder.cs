@@ -11,8 +11,9 @@ namespace dmaTrainABS
     {
         private static readonly PathManager pathManager = Singleton<PathManager>.instance;
 
-        internal static List<PathUnit.Position> GetCurrentPosition(Declarations.STrains train, ushort frontVehicleId)
+        public static List<PathUnit.Position> GetCurrentPosition(ushort trainId, ushort frontVehicleId)
         {
+            var train = SimData.Trains[trainId];
             try
             {
                 List<PathUnit.Position> positions = new List<PathUnit.Position>(); ushort nodeId = 0; ushort dummy = 0;
@@ -26,9 +27,9 @@ namespace dmaTrainABS
                     positions.AddNew(tPosition);
                 }
 
-                if (train.TrainID != frontVehicleId)
+                if (trainId != frontVehicleId)
                 {
-                    train.CSegment.AddNew(TrainPosition(train.TrainID.ToVehicle(), ref dummy, out PathUnit.Position tPosition));
+                    train.CSegment.AddNew(TrainPosition(trainId.ToVehicle(), ref dummy, out PathUnit.Position tPosition));
                     positions.AddNew(tPosition);
                 }
                 return positions;
@@ -36,7 +37,7 @@ namespace dmaTrainABS
             catch { return new List<PathUnit.Position>(); }
         }
 
-        internal static List<ushort> GetNextPosition(Vehicle vehicle, out PathUnit.Position Position)
+        public static List<ushort> GetNextPosition(Vehicle vehicle, out PathUnit.Position Position)
         {
             List<ushort> segments = new List<ushort>();
             uint pathUnitId = vehicle.m_path;
@@ -50,7 +51,7 @@ namespace dmaTrainABS
             return segments;
         }
 
-        internal static ushort TrainPosition(Vehicle vehicle, ref ushort nodeId, out PathUnit.Position Position)
+        public static ushort TrainPosition(Vehicle vehicle, ref ushort nodeId, out PathUnit.Position Position)
         {
             uint pathUnitId = vehicle.m_path;
             PathUnit pathUnit = pathManager.m_pathUnits.m_buffer[pathUnitId];

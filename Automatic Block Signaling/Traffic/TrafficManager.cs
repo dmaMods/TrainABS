@@ -9,6 +9,8 @@ namespace dmaTrainABS
     public class TrafficManager
     {
         private static Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+        private static SimulationManager simManager = Singleton<SimulationManager>.instance;
+        private static int gameDay;
 
         public static void UpdateTraffic(uint frameIndex)
         {
@@ -16,89 +18,102 @@ namespace dmaTrainABS
             if (!SimData.Nodes.IsValid()) return;
 
             SimData.Updating = true; SimData.ProcessD++;
-            SimData.CheckNodes();
+            SimData.CheckNodes(); HouseKeeping();
             try
             {
-                if (SimData.UpdateRequired || ForcedUpdate()) BlockData.LoadNetwork();
+                if (SimData.UpdateRequired || ForcedUpdate) BlockData.LoadNetwork();
                 TrainData.LoadTrains();
                 int Cnt = SimData.WaitingList.Count == 0 ? 1000 : SimData.WaitingList.Max(x => x.ProcessId) + 1;
 
                 TrainData.ProcessTrains();
                 foreach (var train in SimData.Trains)
                 {
-                    var frontCar = vehicles[train.TrainID.FrontCar()];
-                    if (frontCar.m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) && SimData.Nodes.Any(y => y.NodeID == train.NodeID) && train.NodeID != 0 && train.SignalNode == 0)
+                    var frontCar = vehicles[train.Key.FrontCar()];
+                    if (frontCar.m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) && SimData.Nodes.Any(x => x.NodeID == train.Value.NodeID) &&
+                        train.Value.NodeID != 0 && train.Value.SignalBlock == 0)
                     {
                         SimData.WaitingList.AddNew(new Declarations.SWaitingList
                         {
-                            NodeId = train.NodeID,
+                            NodeId = train.Value.NodeID,
                             ProcessId = ++Cnt,
-                            TrainId = train.TrainID
+                            TrainId = train.Key,
+                            BlockId = train.Value.NBlock
                         });
-                    }
-                    else
-                    {
-                        if (train.SignalNode != 0)
-                        {
-                            var lastCar = vehicles[train.TrainID.LastCar()];
-                            ushort nodeId = 0; ushort cSegment = PathFinder.TrainPosition(lastCar, ref nodeId, out PathUnit.Position position);
-                            if (train.SignalNode == nodeId)
-                            {
-                                var node = SimData.Nodes.FirstOrDefault(x => x.NodeID == train.SignalNode);
-                                if (node == null) continue;
-                                var segment = node.Segments.FirstOrDefault(x => x.LockedBy == train.TrainID && x.GreenState);
-                                if (segment == null) continue;
-                                segment.LockedBy = 0;
-                                segment.GreenState = false;
-                                train.SignalNode = 0;
-                                foreach (var cblock in train.CBlock)
-                                    SimData.GreenLights.Remove(cblock);
-                            }
-                        }
                     }
                 }
 
                 var WList = SimData.WaitingList.Where(x => !x.Processed).OrderBy(c => c.NodeId).ThenBy(n => n.ProcessId);
                 foreach (var wl in WList)
                 {
-                    var train = SimData.Trains.FirstOrDefault(x => x.TrainID == wl.TrainId);
-                    if (train == null) { ClearProcessId(wl.ProcessId); continue; }
-                    var frontCar = vehicles[train.TrainID.FrontCar()];
+                    if (!SimData.Trains.ContainsKey(wl.TrainId)) { ClearProcessId(wl.ProcessId); continue; }
+                    var train = SimData.Trains[wl.TrainId];
+                    var frontCar = vehicles[wl.TrainId.FrontCar()];
                     if (CanProceed(train, out bool blockIsFree))
                     {
                         if (train.CSegment.Count() != 0 && blockIsFree)
                         {
                             var node = SimData.Nodes.FirstOrDefault(x => x.NodeID == train.NodeID);
-                            if (node == null) continue;
+                            if (node == null) { ClearProcessId(wl.ProcessId); continue; };
                             var segment = node.Segments.FirstOrDefault(x => x.LockedBy == 0 && x.SegmentID == train.CSegment.FirstOrDefault() && !x.GreenState);
-                            if (segment == null) continue;
-                            TrafficLights.ClearGreen(train);
-                            segment.LockedBy = train.TrainID;
+                            if (segment == null) { ClearProcessId(wl.ProcessId); continue; };
+                            TrafficLights.ClearGreen(wl.TrainId);
+                            segment.LockedBy = wl.TrainId;
                             segment.GreenState = true;
                             ClearProcessId(wl.ProcessId);
                             train.SignalNode = train.NodeID;
-                            SimData.GreenLights.AddNew(train.NBlock, train.TrainID);
+                            train.SignalBlock = train.NBlock;
+                            train.GreenLight = true;
+                            SimData.GreenLights.AddNew(train.NBlock, wl.TrainId);
                             foreach (var cblock in train.CBlock)
-                                SimData.UpdateBlock(cblock, train.TrainID);
-                            SimData.UpdateBlock(train.NBlock, train.TrainID);
+                                SimData.UpdateBlock(cblock, wl.TrainId);
+                            SimData.UpdateBlock(train.NBlock, wl.TrainId);
                         }
                     }
                 }
                 SimData.WaitingList.RemoveAll(x => x.Processed);
+
+                foreach (var train in SimData.Trains)
+                {
+                    var frontCar = vehicles[train.Key.FrontCar()];
+                    if (frontCar.m_flags2.IsFlagSet(Vehicle.Flags2.Yielding)) continue;
+                    var lastCar = vehicles[train.Key.LastCar()];
+                    if (train.Value.CBlock.Contains(train.Value.SignalBlock))
+                    {
+                        var node = SimData.Nodes.FirstOrDefault(x => x.NodeID == train.Value.SignalNode);
+                        if (node == null) continue;
+                        var segment = node.Segments.FirstOrDefault(x => x.LockedBy == train.Key && x.GreenState);
+                        if (segment == null) continue;
+                        segment.LockedBy = 0;
+                        segment.GreenState = false;
+                        train.Value.SignalNode = 0;
+                        train.Value.SignalBlock = 0;
+                        train.Value.GreenLight = false;
+                        foreach (var cblock in train.Value.CBlock)
+                            SimData.GreenLights.Remove(cblock);
+                    }
+                }
             }
             catch (Exception ex) { Debug.LogException(ex); }
             SimData.Updating = false;
         }
 
-        private static bool ForcedUpdate()
+        private static void HouseKeeping()
         {
-            return SimData.ProcessD == 10 || SimData.ProcessD == 20;
+            if (gameDay != simManager.m_currentGameTime.Day)
+            {
+                gameDay = simManager.m_currentGameTime.Day;
+                //foreach (var node in SimData.Nodes)
+                //    foreach (var seg in node.Segments) { seg.LockedBy = 0; seg.GreenState = false; }
+                //SimData.GreenLights.Clear();
+            }
         }
+
+        private static bool ForcedUpdate => SimData.ProcessD == 10;
 
         private static void ClearProcessId(int processId)
         {
-            foreach (var wl in SimData.WaitingList.Where(x => x.ProcessId == processId))
-                wl.Processed = true;
+            var wl = SimData.WaitingList.FirstOrDefault(x => x.ProcessId == processId);
+            if (wl != null) wl.Processed = true;
         }
 
         internal static bool CanProceed(Declarations.STrains train, out bool blockIsFree)
