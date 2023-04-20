@@ -153,8 +153,7 @@ namespace dmaTrainABS
         {
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "=== TRAINS DEBUG ===");
 
-            CheckTrains();// DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "CheckTrains... Pass");
-            ProcessTrains();// DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "ProcessTrains... Pass");
+            CheckTrains(); ProcessTrains();
 
             string NL = Environment.NewLine; string txt = ""; int cnt = 1;
 
@@ -178,32 +177,7 @@ namespace dmaTrainABS
 
                 }
             }
-            //try
-            //{
-            //    foreach (var train in SimData.Trains.Where(x => x.TrainID == trainId))
-            //    {
-            //        var vehicle = vehicles[train.TrainID]; bool blockIsFree = false;
-            //        bool reversed = (vehicle.m_flags & Vehicle.Flags.Reversed) != 0;
-            //        bool isMain = (vehicle.m_flags & Vehicle.Flags.TransferToTarget) != 0 || (vehicle.m_flags & Vehicle.Flags.TransferToSource) != 0;
-            //        ushort frontVehicleId = isMain && !reversed ? train.TrainID : vehicle.GetLastVehicle(train.TrainID);
-            //        var nBlock = SimData.Blocks.ContainsKey(train.NBlock) ? SimData.Blocks[train.NBlock] : new SRailBlocks();
-            //        var segment = train.CSegment.FirstOrDefault().ToSegment();
-
-            //        txt += "Train #" + train.TrainID + (frontVehicleId != train.TrainID ? ", Front: " + frontVehicleId : "") +
-            //                 (TrafficManager.CanProceed(train, out bool FreeBlock) ? " (CP)" : "") +
-            //                 ", Lane: " + train.Position.m_lane + NodeSelector.LaneColor(train.Position.m_lane) + ", Segment (" + train.CSegment.Count + "): " + train.CSegment.FirstOrDefault() +
-            //                 ", Next (" + train.NSegment.Count + "): " + train.NSegment.FirstOrDefault() + ", Node: " + train.NodeID + NL +
-            //                    "Signal Node: " + train.SignalNode + ", Green Light: " + (SimData.GreenLights.Any(x=>x.BlockId==train.NBlock) ? "Yes" : "No") +
-            //                    ", Yield Test: " + (frontVehicleId.ToVehicle().m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) && SimData.Nodes.Any(y => y.NodeID == train.NodeID) && train.NodeID != 0 && TrafficManager.CanProceed(train, out blockIsFree) ? "Pass" : "Failed") +
-            //                    ", Segment Test: " + (train.CSegment.Count() != 0 && blockIsFree ? "Pass" : "Failed (" + train.CSegment.Count() + ") " + blockIsFree) +
-            //                    ", Node " + train.NodeID + " Test: " + (SimData.Nodes.FirstOrDefault(x => x.NodeID == train.NodeID) != null ? "Pass" : "Failed") + NL +
-            //                    "Vehicle Flags: " + frontVehicleId.ToVehicle().m_flags + (frontVehicleId.ToVehicle().m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) ? ", Yielding" : "") + NL +
-            //                    "Current Blocks: " + string.Join(", ", train.CBlock.Select(x => x.ToString()).ToArray()) + NL +
-            //                    "Next Block: " + (train.NBlock != 0 ? train.NBlock /*+ ", Node: " + nBlock.StartNode + ", "*/ + (nBlock.Blocked ? "Blocked By: " + nBlock.BlockedBy : "Free") : "None");
-            //    }
             DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
-            //}
-            //catch (Exception ex) { DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, ex.Message + NL + ex.StackTrace); }
         }
         #endregion
     }

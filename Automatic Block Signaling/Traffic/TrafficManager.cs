@@ -9,8 +9,6 @@ namespace dmaTrainABS
     public class TrafficManager
     {
         private static Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-        private static SimulationManager simManager = Singleton<SimulationManager>.instance;
-        private static int gameDay;
 
         public static void UpdateTraffic(uint frameIndex)
         {
@@ -18,10 +16,10 @@ namespace dmaTrainABS
             if (!SimData.Nodes.IsValid()) return;
 
             SimData.Updating = true; SimData.ProcessD++;
-            SimData.CheckNodes(); HouseKeeping();
+            SimData.CheckNodes();
             try
             {
-                if (SimData.UpdateRequired || ForcedUpdate) BlockData.LoadNetwork();
+                if (SimData.UpdateRequired) BlockData.LoadNetwork();
                 TrainData.LoadTrains();
                 int Cnt = SimData.WaitingList.Count == 0 ? 1000 : SimData.WaitingList.Max(x => x.ProcessId) + 1;
 
@@ -96,19 +94,6 @@ namespace dmaTrainABS
             catch (Exception ex) { Debug.LogException(ex); }
             SimData.Updating = false;
         }
-
-        private static void HouseKeeping()
-        {
-            if (gameDay != simManager.m_currentGameTime.Day)
-            {
-                gameDay = simManager.m_currentGameTime.Day;
-                //foreach (var node in SimData.Nodes)
-                //    foreach (var seg in node.Segments) { seg.LockedBy = 0; seg.GreenState = false; }
-                //SimData.GreenLights.Clear();
-            }
-        }
-
-        private static bool ForcedUpdate => SimData.ProcessD == 10;
 
         private static void ClearProcessId(int processId)
         {

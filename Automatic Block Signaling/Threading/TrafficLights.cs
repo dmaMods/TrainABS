@@ -87,6 +87,7 @@ namespace dmaTrainABS
             segment.LockedBy = 0;
             segment.GreenState = false;
             train.SignalNode = 0;
+            train.SignalBlock = 0;
         }
 
     }
