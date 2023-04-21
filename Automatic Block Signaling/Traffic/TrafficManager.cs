@@ -35,12 +35,13 @@ namespace dmaTrainABS
                             NodeId = train.Value.NodeID,
                             ProcessId = ++Cnt,
                             TrainId = train.Key,
-                            BlockId = train.Value.NBlock
+                            BlockId = train.Value.NBlock,
+                            frameIndex = frameIndex
                         });
                     }
                 }
 
-                var WList = SimData.WaitingList.Where(x => !x.Processed).OrderBy(c => c.NodeId).ThenBy(n => n.ProcessId);
+                var WList = SimData.WaitingList.Where(x => !x.Processed).OrderBy(c => c.frameIndex).ThenBy(f => f.ProcessId).ThenBy(n => n.NodeId);
                 foreach (var wl in WList)
                 {
                     if (!SimData.Trains.ContainsKey(wl.TrainId)) { ClearProcessId(wl.ProcessId); continue; }

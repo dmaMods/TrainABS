@@ -12,11 +12,12 @@ namespace dmaTrainABS.GameData
 
         public class SWaitingList
         {
-            public ushort NodeId { get; set; }
-            public int ProcessId { get; set; }
-            public ushort TrainId { get; set; }
-            public bool Processed { get; set; }
-            public ushort BlockId { get; set; }
+            public ushort NodeId { get; set; } = 0;
+            public int ProcessId { get; set; } = 0;
+            public ushort TrainId { get; set; } = 0;
+            public bool Processed { get; set; } = false;
+            public ushort BlockId { get; set; } = 0;
+            public uint frameIndex { get; set; } = 0;
         }
 
         public class SGreenList

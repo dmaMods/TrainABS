@@ -151,33 +151,38 @@ namespace dmaTrainABS
         #region DEBUG / SHOW TRAINS
         public static void ShowTrains()
         {
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "=== TRAINS DEBUG ===");
-
-            CheckTrains(); ProcessTrains();
-
-            string NL = Environment.NewLine; string txt = ""; int cnt = 1;
-
-            txt = "Waiting List:" + NL;
-            foreach (var wl in SimData.WaitingList)
+            try
             {
-                txt += cnt++.ToString("000") + " - Block: " + wl.BlockId + ", Node: " + wl.NodeId + ", Train: " + wl.TrainId + ", ProcessId: " + wl.ProcessId + (wl.Processed ? ", Processed" : "") + NL;
-            }
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "=== TRAINS DEBUG ===");
+                var currentFrame = Singleton<SimulationManager>.instance.m_currentFrameIndex;
+                CheckTrains(); ProcessTrains();
 
-            txt += NL;
-            txt += "Trains:" + NL; cnt = 1;
+                string NL = Environment.NewLine; string txt = ""; int cnt = 1;
 
-            foreach (var train in SimData.Trains)
-            {
-                var vehicle = train.Key.FrontCar().ToVehicle();
-                if (vehicle.m_flags2.IsFlagSet(Vehicle.Flags2.Yielding))
+                txt = "Waiting List:" + NL;
+                foreach (var wl in SimData.WaitingList)
                 {
-                    txt += cnt++.ToString("000") + " - Train: " + train.Key + ", Signal Block: " + train.Value.SignalBlock +
-                        ", Node: " + train.Value.NodeID + (SimData.Nodes.Any(x => x.NodeID == train.Value.NodeID) ? " Valid" : "") + ", Signal node: " + train.Value.SignalNode +
-                        ", Next Block: " + train.Value.NBlock + ", " + (SimData.Blocks[train.Value.NBlock].Blocked ? "Blocked" : "Free - CHECK!") + NL;
-
+                    txt += cnt++.ToString("000") + " - Block: " + wl.BlockId + ", Node: " + wl.NodeId + ", Train: " +
+                        wl.TrainId + ", ProcessId: " + wl.ProcessId + (wl.Processed ? ", Processed" : "") + ", Delay: " + (currentFrame - wl.frameIndex) + NL;
                 }
+
+                txt += NL;
+                txt += "Trains:" + NL; cnt = 1;
+
+                foreach (var train in SimData.Trains)
+                {
+                    var vehicle = train.Key.FrontCar().ToVehicle();
+                    if (vehicle.m_flags2.IsFlagSet(Vehicle.Flags2.Yielding) && train.Value.NBlock != 0)
+                    {
+                        txt += cnt++.ToString("000") + " - Train: " + train.Key + ", Signal Block: " + train.Value.SignalBlock +
+                            ", Node: " + train.Value.NodeID + (SimData.Nodes.Any(x => x.NodeID == train.Value.NodeID) ? " Valid" : "") + ", Signal node: " + train.Value.SignalNode +
+                            ", Next Block: " + train.Value.NBlock + ", " + (SimData.Blocks.ContainsKey(train.Value.NBlock) ? (SimData.Blocks[train.Value.NBlock].Blocked ? "Blocked" : "Free - CHECK!") : "Invalid") + NL;
+
+                    }
+                }
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
             }
-            DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, txt);
+            catch (Exception ex) { DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, ex.Message + Environment.NewLine + ex.StackTrace); }
         }
         #endregion
     }
