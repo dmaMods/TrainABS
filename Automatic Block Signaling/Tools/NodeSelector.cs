@@ -122,14 +122,40 @@ namespace dmaTrainABS
 
         private IEnumerator RemoveTrafficLights()
         {
-            var node = netManager.m_nodes.m_buffer[selectedNodeId];
-            NetNode.Flags flags = node.m_flags;
-            flags &= ~NetNode.Flags.TrafficLights;
-            flags &= ~NetNode.Flags.CustomTrafficLights;
-            netManager.m_nodes.m_buffer[selectedNodeId].m_flags = flags;
+            if (selectedNodeId == 0 && selectedSegmentId != 0)
+            {
+                var segment = selectedSegmentId.ToSegment();
+                if (segment.m_startNode.ToNode().flags.IsFlagSet(NetNode.FlagsLong.TrafficLights))
+                {
+                    selectedNodeId = segment.m_startNode;
+                    var node = netManager.m_nodes.m_buffer[selectedNodeId];
+                    NetNode.Flags flags = node.m_flags;
+                    flags &= ~NetNode.Flags.TrafficLights;
+                    flags &= ~NetNode.Flags.CustomTrafficLights;
+                    netManager.m_nodes.m_buffer[selectedNodeId].m_flags = flags;
+                    SimData.RemoveNode(selectedNodeId);
+                }
+                if (segment.m_endNode.ToNode().flags.IsFlagSet(NetNode.FlagsLong.TrafficLights))
+                {
+                    selectedNodeId = segment.m_endNode;
+                    var node = netManager.m_nodes.m_buffer[selectedNodeId];
+                    NetNode.Flags flags = node.m_flags;
+                    flags &= ~NetNode.Flags.TrafficLights;
+                    flags &= ~NetNode.Flags.CustomTrafficLights;
+                    netManager.m_nodes.m_buffer[selectedNodeId].m_flags = flags;
+                    SimData.RemoveNode(selectedNodeId);
+                }
+            }
+            else
+            {
+                var node = netManager.m_nodes.m_buffer[selectedNodeId];
+                NetNode.Flags flags = node.m_flags;
+                flags &= ~NetNode.Flags.TrafficLights;
+                flags &= ~NetNode.Flags.CustomTrafficLights;
+                netManager.m_nodes.m_buffer[selectedNodeId].m_flags = flags;
 
-            SimData.RemoveNode(selectedNodeId);
-
+                SimData.RemoveNode(selectedNodeId);
+            }
             yield return null;
         }
 
@@ -328,6 +354,10 @@ namespace dmaTrainABS
                             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
                             {
                                 colour = Color.yellow; Action = NodeAction.InsertNode; baseCircle = false;
+                            }
+                            else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+                            {
+                                colour = Color.red; Action = NodeAction.RemoveNode; baseCircle = false;
                             }
                             else if (Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt) || Input.GetKey(KeyCode.AltGr))
                             {
