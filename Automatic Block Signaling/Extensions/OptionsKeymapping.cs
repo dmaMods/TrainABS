@@ -31,7 +31,7 @@ namespace dmaTrainABS
 
         private void Awake()
         {
-            this.AddKeymapping("Mod shortcut", TrainABSModData.ModShortcut);
+            this.AddKeymapping("Node selection", TrainABSModData.ModShortcut);
             this.AddKeymapping("Update network", TrainABSModData.NetReload);
             this.AddKeymapping("Green lights to all", TrainABSModData.AllGreenLights);
             this.AddKeymapping("Red lights to all", TrainABSModData.AllRedLights);
@@ -40,17 +40,6 @@ namespace dmaTrainABS
 
         private KeyCode ButtonToKeycode(UIMouseButton button) =>
             (button != UIMouseButton.Left) ? ((button != UIMouseButton.Right) ? ((button != UIMouseButton.Middle) ? ((button != UIMouseButton.Special0) ? ((button != UIMouseButton.Special1) ? ((button != UIMouseButton.Special2) ? ((button != UIMouseButton.Special3) ? KeyCode.None : KeyCode.Mouse6) : KeyCode.Mouse5) : KeyCode.Mouse4) : KeyCode.Mouse3) : KeyCode.Mouse2) : KeyCode.Mouse1) : KeyCode.Mouse0;
-
-        //internal InputKey GetDefaultEntry(string entryName)
-        //{
-        //    FieldInfo field = typeof(DefaultSettings).GetField(entryName, BindingFlags.Public | BindingFlags.Static);
-        //    if (field == null)
-        //    {
-        //        return 0;
-        //    }
-        //    object obj2 = field.GetValue(null);
-        //    return (!(obj2 is InputKey) ? 0 : ((InputKey)obj2));
-        //}
 
         private bool IsAltDown() =>
             Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
@@ -117,10 +106,7 @@ namespace dmaTrainABS
 
         private void OnEnable() { }
 
-        private void OnLocaleChanged()
-        {
-            this.RefreshBindableInputs();
-        }
+        private void OnLocaleChanged() => this.RefreshBindableInputs();
 
         private void RefreshBindableInputs()
         {
