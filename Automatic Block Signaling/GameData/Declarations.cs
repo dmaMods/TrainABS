@@ -72,6 +72,7 @@ namespace dmaTrainABS.GameData
             public bool Inverted { get; set; }
             public ushort BlockId { get; set; }
             public bool Processed { get; set; }
+            public bool OutOfArea { get; set; }
         }
 
     }

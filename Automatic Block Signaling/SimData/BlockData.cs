@@ -50,7 +50,7 @@ namespace dmaTrainABS
                     if (!(segment.Info.m_connectGroup == NetInfo.ConnectGroup.SingleTrain ||
                           segment.Info.m_connectGroup == NetInfo.ConnectGroup.DoubleTrain ||
                           segment.Info.m_connectGroup == NetInfo.ConnectGroup.TrainStation)) continue;
-                    if (segment.m_flags.IsFlagSet(NetSegment.Flags.Original)) continue;
+                    //if (segment.m_flags.IsFlagSet(NetSegment.Flags.Original)) continue;
                     ushort sNode = segment.m_startNode;
                     ushort eNode = segment.m_endNode;
                     if (sNode != nodeId && !blockNodes.Any(x => x.NodeId == sNode) && NetNodes[sNode].IsValid())
@@ -86,7 +86,8 @@ namespace dmaTrainABS
                             EndSegment = endSegment,
                             Inverted = inverted,
                             BlockId = 0,
-                            Lane = 2
+                            Lane = 2,
+                            OutOfArea = segment.m_flags.IsFlagSet(NetSegment.Flags.Original)
                         });
                     if (endSegment && sNode != nodeId) SetProcessed(sNode);
                     if (endSegment && eNode != nodeId) SetProcessed(eNode);
@@ -101,7 +102,7 @@ namespace dmaTrainABS
                 foreach (var node in SimData.Nodes)
                     if (!blockNodes.Any(x => x.NodeId == node.NodeID)) { nodeId = node.NodeID; goto Loop3; }
 
-                blocks = CalculateBlocks();
+                blocks = CalculateBlocks(); blockSegments.RemoveAll(x => x.OutOfArea);
                 SimData.Blocks = CreateRailwayBlocks();
                 SimData.UpdateRequired = false;
             }
@@ -191,7 +192,8 @@ namespace dmaTrainABS
                     Lane = segment.Lane.RevertLane(),
                     Processed = false,
                     SegmentId = segment.SegmentId,
-                    StartNode = segment.StartNode
+                    StartNode = segment.StartNode,
+                    OutOfArea = segment.OutOfArea
                 });
                 retBlocks.AddNew(new Block { BlockId = blockId, BlockedBy = 0 });
             }

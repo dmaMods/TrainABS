@@ -55,7 +55,6 @@ namespace dmaTrainABS
                             if (node == null) { ClearProcessId(wl.ProcessId); continue; };
                             var segment = node.Segments.FirstOrDefault(x => x.LockedBy == 0 && x.SegmentID == train.CSegment.FirstOrDefault() && !x.GreenState);
                             if (segment == null) { ClearProcessId(wl.ProcessId); continue; };
-                            TrafficLights.ClearGreen(wl.TrainId);
                             segment.LockedBy = wl.TrainId;
                             segment.GreenState = true;
                             ClearProcessId(wl.ProcessId);
