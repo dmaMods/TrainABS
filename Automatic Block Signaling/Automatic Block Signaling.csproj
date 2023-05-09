@@ -77,6 +77,7 @@
     <Compile Include="Threading\KeyboardInput.cs" />
     <Compile Include="Threading\SimManager.cs" />
     <Compile Include="Threading\TrafficLights.cs" />
+    <Compile Include="Traffic\Helpers.cs" />
     <Compile Include="Traffic\TrafficManager.cs" />
     <Compile Include="TrainABSModData.cs" />
   </ItemGroup>
@@ -90,7 +91,7 @@ xcopy /y "$(TargetDir)CitiesHarmony.API.dll" "%25LOCALAPPDATA%25\Colossal Order\
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_StartDate="2023/2/14" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.None.DeltaBaseDate.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.DeltaBaseDate.Increment" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_StartDate="2023/2/14" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

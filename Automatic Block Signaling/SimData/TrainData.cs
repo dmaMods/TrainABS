@@ -16,7 +16,7 @@ namespace dmaTrainABS
         {
             if (!SimData.Trains.IsValid()) SimData.Trains = new Dictionary<ushort, STrains>();
 
-            for (ushort v = 1; v < vehicles.Length; v++)
+            for (ushort v = 0; v < vehicles.Length; v++)
             {
                 Vehicle vehicle = vehicles[v];
                 if (vehicle.m_flags.IsFlagSet(Vehicle.Flags.Created) && vehicle.Info != null && !vehicle.m_flags.IsFlagSet(Vehicle.Flags.WaitingSpace))

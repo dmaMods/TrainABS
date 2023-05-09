@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using dmaTrainABS.GameData;
+using dmaTrainABS.Traffic;
 using System;
 using System.Linq;
 using UnityEngine;
@@ -16,7 +17,8 @@ namespace dmaTrainABS
             if (!SimData.Nodes.IsValid()) return;
 
             SimData.Updating = true; SimData.ProcessD++;
-            SimData.CheckNodes();
+            Helpers.ClearConfused(); SimData.CheckNodes();
+
             try
             {
                 if (SimData.UpdateRequired) BlockData.LoadNetwork();

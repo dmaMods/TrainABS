@@ -1,8 +1,8 @@
 ﻿using ColossalFramework;
 using ColossalFramework.Plugins;
 using static dmaTrainABS.GameData.Declarations;
-using System;
 using UnityEngine;
+using dmaTrainABS.Traffic;
 
 namespace dmaTrainABS
 {
@@ -107,6 +107,7 @@ namespace dmaTrainABS
                 if (_processed) return; _processed = true;
 
                 SimData.ShowStats();
+                DebugOutputPanel.AddMessage(PluginManager.MessageType.Message, "[TrainABS] Clear " + Helpers.ClearConfused() + " confused cars.");
             }
 
             else if ((Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl)) && (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)) && Input.GetKey(KeyCode.K))
